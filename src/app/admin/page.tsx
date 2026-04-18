@@ -1,22 +1,42 @@
-import { FileText, Users, Eye, TrendingUp, Plus } from "lucide-react";
+import { FileText, Users, Eye, TrendingUp, Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminDashboard() {
-  const [postCount, categoryCount] = await Promise.all([
+  // Fetch stats and actual data
+  const [postCount, categoryCount, recentPosts, categoriesWithCount] = await Promise.all([
     prisma.post.count(),
     prisma.category.count(),
+    prisma.post.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { category: true }
+    }),
+    prisma.category.findMany({
+      include: {
+        _count: {
+          select: { posts: true }
+        }
+      }
+    })
   ]);
+
+  // Calculate real distribution percentages
+  const distribution = categoriesWithCount.map(cat => ({
+    label: cat.name,
+    percentage: postCount > 0 ? Math.round((cat._count.posts / postCount) * 100) : 0
+  })).sort((a, b) => b.percentage - a.percentage);
 
   const stats = [
     { name: "Total Posts", value: postCount.toString(), icon: <FileText className="w-5 h-5" />, color: "bg-blue-500/10 text-blue-400" },
-    { name: "Blog Views", value: "24.5k", icon: <Eye className="w-5 h-5" />, color: "bg-purple-500/10 text-purple-400" },
+    { name: "Blog Views", value: "0", icon: <Eye className="w-5 h-5" />, color: "bg-purple-500/10 text-purple-400" },
     { name: "Categories", value: categoryCount.toString(), icon: <TrendingUp className="w-5 h-5" />, color: "bg-[#00d4ff10] text-[#00d4ff]" },
-    { name: "Subscribers", value: "528", icon: <Users className="w-5 h-5" />, color: "bg-pink-500/10 text-pink-400" },
+    { name: "Subscribers", value: "0", icon: <Users className="w-5 h-5" />, color: "bg-pink-500/10 text-pink-400" },
   ];
 
   return (
     <div className="flex flex-col gap-10 text-foreground transition-colors duration-300">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-[var(--font-space)] tracking-tight mb-1">
@@ -30,6 +50,7 @@ export default async function AdminDashboard() {
         </Link>
       </div>
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
           <div key={idx} className="glass p-8 rounded-3xl group hover:border-[#00d4ff33] transition-all">
@@ -43,49 +64,67 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Posts Table Shell */}
+        {/* Recent Posts Table */}
         <div className="lg:col-span-2 glass rounded-3xl p-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-bold">Recent Posts</h2>
             <Link href="/admin/posts" className="text-[#00d4ff] text-sm font-semibold hover:underline">View All</Link>
           </div>
+          
           <div className="space-y-4">
-            {[1, 2, 3].map((post) => (
-              <div key={post} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5">
-                <div className="w-16 h-16 rounded-xl bg-white/5 flex-shrink-0 animate-pulse overflow-hidden bg-gradient-to-br from-white/5 to-white/10" />
-                <div className="flex-grow">
-                  <div className="h-4 w-3/4 bg-white/5 rounded mb-2 group-hover:bg-white/10 transition-colors" />
-                  <div className="h-3 w-1/4 bg-white/5 rounded group-hover:bg-white/10 transition-colors" />
+            {recentPosts.length > 0 ? (
+              recentPosts.map((post) => (
+                <div key={post.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5">
+                  <div className="w-16 h-16 rounded-xl bg-white/10 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {post.coverImage ? (
+                      <img src={post.coverImage} className="w-full h-full object-cover" alt={post.title} />
+                    ) : (
+                      <FileText className="w-6 h-6 text-[#64748b]" />
+                    )}
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="font-bold text-base group-hover:text-[#00d4ff] transition-colors line-clamp-1">{post.title}</h3>
+                    <p className="text-xs text-[#64748b]">{post.category?.name || "Uncategorized"} • {new Date(post.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex gap-2">
+                     <Link href={`/admin/posts/${post.id}`} className="p-2.5 rounded-xl bg-white/5 text-[#64748b] hover:bg-blue-500/20 hover:text-blue-400 transition-all">
+                        <Edit className="w-4 h-4" />
+                     </Link>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                   <div className="w-8 h-8 rounded-lg bg-white/5" />
-                   <div className="w-8 h-8 rounded-lg bg-white/5" />
-                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-[#64748b]">No posts found. Create your first one!</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Categories / Quick Stats */}
+        {/* Category Distribution */}
         <div className="glass rounded-3xl p-8">
           <h2 className="text-xl font-bold mb-8 text-center uppercase tracking-widest text-[#64748b] text-sm">Post Distribution</h2>
           <div className="space-y-6">
-            {[
-              { label: "Tech News", percentage: 45 },
-              { label: "Free Games", percentage: 25 },
-              { label: "Free Software", percentage: 20 },
-              { label: "PC Tips", percentage: 10 },
-            ].map((cat, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex justify-between text-sm font-medium">
-                  <span>{cat.label}</span>
-                  <span className="text-[#64748b]">{cat.percentage}%</span>
+            {distribution.length > 0 ? (
+              distribution.map((cat, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>{cat.label}</span>
+                    <span className="text-[#64748b]">{cat.percentage}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-[#00d4ff] to-[#ffa500] rounded-full transition-all duration-1000" 
+                      style={{ width: `${cat.percentage}%` }} 
+                    />
+                  </div>
                 </div>
-                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-[#00d4ff] to-[#ffa500] rounded-full" style={{ width: `${cat.percentage}%` }} />
-                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-[#64748b] text-sm">Add categories to see stats</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
