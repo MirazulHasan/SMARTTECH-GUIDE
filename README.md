@@ -49,7 +49,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SMARTTECH-GUIDE.git
+git clone https://github.com/MirazulHasan/SMARTTECH-GUIDE.git
 cd SMARTTECH-GUIDE
 ```
 
@@ -152,4 +152,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Made with ❤️ by [Md. Mirazul Hasan](https://github.com/YOUR_USERNAME)
+> Made with ❤️ by [Md. Mirazul Hasan](https://github.com/MirazulHasan)
