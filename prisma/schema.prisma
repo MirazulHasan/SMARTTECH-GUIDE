@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  excerpt       String?
+  coverImage    String?
+  published     Boolean   @default(false)
+  featured      Boolean   @default(false)
+  authorId      String
+  author        User      @relation(fields: [authorId], references: [id])
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id               String   @id @default("singleton")
+  siteName         String?  @default("SMART")
+  siteTitle        String?  @default("GUIDE")
+  heroTitle        String?
+  heroSubtitle     String?
+  tickerItems      String?  // JSON string of items
+  footerText       String?
+  updatedAt        DateTime @updatedAt
+}
