@@ -3,7 +3,8 @@
 import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, ChevronRight, Loader2 } from "lucide-react";
+import { Lock, Mail, ChevronRight, Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 // Inner component that uses useSearchParams — must be inside <Suspense>
 function LoginForm() {
@@ -100,6 +101,16 @@ function LoginForm() {
           )}
         </button>
       </form>
+
+      <div className="mt-8 text-center">
+        <Link 
+          href="/" 
+          className="text-sm text-[#64748b] hover:text-[#00d4ff] transition-colors inline-flex items-center gap-2 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Homepage
+        </Link>
+      </div>
     </div>
   );
 }
