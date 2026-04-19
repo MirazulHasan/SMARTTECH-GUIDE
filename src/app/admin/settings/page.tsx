@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, Loader2, Info, Image as ImageIcon, Camera } from "lucide-react";
+import { Save, Loader2, Info, Image as ImageIcon, Camera, Layers, Newspaper, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import LogoEditor from "@/components/admin/LogoEditor";
 
@@ -12,6 +12,15 @@ export default function SettingsPage() {
     tickerItems: "",
     logoUrl: "",
     footerText: "",
+    siteName: "SMART",
+    siteTitle: "GUIDE",
+    exploreTitle: "EXPLORE OUR GUIDES",
+    exploreSubtitle: "Hand-picked categories to help you master your PC.",
+    stayUpdatedTitle: "Stay Updated",
+    stayUpdatedSubtitle: "Get the latest PC tips delivered to your inbox.",
+    footerTitle: "SmartTech Guide",
+    footerSubtitle: "Smart Tips, Better You.",
+    socialLinkFacebook: "",
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -62,6 +71,15 @@ export default function SettingsPage() {
           tickerItems: data.tickerItems || "",
           logoUrl: data.logoUrl || "",
           footerText: data.footerText || "",
+          siteName: data.siteName || "SMART",
+          siteTitle: data.siteTitle || "GUIDE",
+          exploreTitle: data.exploreTitle || "",
+          exploreSubtitle: data.exploreSubtitle || "",
+          stayUpdatedTitle: data.stayUpdatedTitle || "",
+          stayUpdatedSubtitle: data.stayUpdatedSubtitle || "",
+          footerTitle: data.footerTitle || "",
+          footerSubtitle: data.footerSubtitle || "",
+          socialLinkFacebook: data.socialLinkFacebook || "",
         });
       } catch (err) {
         console.error(err);
@@ -90,7 +108,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (fetching) return <div className="flex justify-center py-40 animate-pulse text-[#64748b]">Loading configuration...</div>;
+  if (fetching) return <div className="flex justify-center py-40 animate-pulse text-muted-foreground">Loading configuration...</div>;
 
   return (
     <div className="space-y-10">
@@ -105,7 +123,7 @@ export default function SettingsPage() {
         <h1 className="text-3xl font-bold font-[var(--font-space)] tracking-tight mb-1">
           Site <span className="gradient-text">Settings</span>
         </h1>
-        <p className="text-[#64748b] text-sm">Configure the look and feel of your tech hub landing page.</p>
+        <p className="text-muted-foreground text-sm">Configure the look and feel of your tech hub landing page.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="glass rounded-3xl p-10 space-y-8 max-w-4xl border-white/5">
@@ -113,7 +131,7 @@ export default function SettingsPage() {
         <div className="space-y-10">
           <div className="flex items-center gap-4">
             <div className="w-1.5 h-8 bg-[#a855f7] rounded-full shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
-            <h2 className="text-3xl font-bold text-white font-[var(--font-space)]">
+            <h2 className="text-3xl font-bold text-foreground font-[var(--font-space)]">
               Profile <span className="gradient-text">Photo</span>
             </h2>
           </div>
@@ -130,13 +148,13 @@ export default function SettingsPage() {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                     />
                   ) : (
-                    <ImageIcon className="w-12 h-12 text-white/10" />
+                    <ImageIcon className="w-12 h-12 text-foreground/10" />
                   )}
                 </div>
               </div>
               
               {/* Camera Button */}
-              <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#d946ef] border-4 border-[#0a0f1e] flex items-center justify-center text-white shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer z-10">
+              <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#d946ef] border-4 border-[#0a0f1e] flex items-center justify-center text-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer z-10">
                 <Camera className="w-5 h-5" />
                 <input type="file" className="hidden" accept="image/*" onChange={handleLogoSelect} />
               </label>
@@ -154,8 +172,8 @@ export default function SettingsPage() {
               </div>
               
               <div className="text-center space-y-0.5">
-                <p className="text-lg font-bold text-white">Upload Avatar</p>
-                <p className="text-[9px] font-bold text-[#64748b] uppercase tracking-[.25em]">max 10 MB</p>
+                <p className="text-lg font-bold text-foreground">Upload Avatar</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[.25em]">max 10 MB</p>
               </div>
               
               <input 
@@ -170,18 +188,18 @@ export default function SettingsPage() {
         </div>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[#64748b] px-1 uppercase tracking-widest">Hero Title</label>
-            <input
-              className="w-full bg-[#1e293b]/20 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all"
-              value={formData.heroTitle}
+          <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest"> Hero Title </label>
+          <input
+            className="w-full bg-muted/10 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground"
+            value={formData.heroTitle}
               onChange={(e) => setFormData({ ...formData, heroTitle: e.target.value })}
               placeholder="Your Ultimate Tech Hub..."
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[#64748b] px-1 uppercase tracking-widest">Hero Subtitle</label>
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Hero Subtitle</label>
             <input
-              className="w-full bg-[#1e293b]/20 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all"
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
               value={formData.heroSubtitle}
               onChange={(e) => setFormData({ ...formData, heroSubtitle: e.target.value })}
               placeholder="Discover free games, software drop..."
@@ -190,7 +208,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-[#64748b] px-1 uppercase tracking-widest">Ticker Items (JSON)</label>
+          <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Ticker Items (JSON)</label>
           <div className="p-4 rounded-xl bg-[#00d4ff0a] border border-[#00d4ff1a] flex gap-3 mb-2">
             <Info className="w-4 h-4 text-[#00d4ff] shrink-0 translate-y-0.5" />
             <p className="text-[10px] text-[#00d4ff] uppercase font-bold tracking-widest">Must be an array of strings like ["Link 1", "Link 2"]</p>
@@ -203,14 +221,81 @@ export default function SettingsPage() {
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[#64748b] px-1 uppercase tracking-widest">Footer Text</label>
-          <input
-            className="w-full bg-[#1e293b]/20 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all"
-            value={formData.footerText}
-            onChange={(e) => setFormData({ ...formData, footerText: e.target.value })}
-            placeholder="© 2025 SmartTech Guide. All rights reserved."
-          />
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Layers className="w-5 h-5 text-[#00d4ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Categories Section</h3>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Section Title</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.exploreTitle}
+              onChange={(e) => setFormData({ ...formData, exploreTitle: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Section Subtitle</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.exploreSubtitle}
+              onChange={(e) => setFormData({ ...formData, exploreSubtitle: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Newspaper className="w-5 h-5 text-[#ff00ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Newsletter Section</h3>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Heading</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.stayUpdatedTitle}
+              onChange={(e) => setFormData({ ...formData, stayUpdatedTitle: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Description</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.stayUpdatedSubtitle}
+              onChange={(e) => setFormData({ ...formData, stayUpdatedSubtitle: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <ChevronRight className="w-5 h-5 text-[#00f2ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Footer HUD Config</h3>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Footer Brand Name</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.footerTitle}
+              onChange={(e) => setFormData({ ...formData, footerTitle: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Footer Subtitle</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.footerSubtitle}
+              onChange={(e) => setFormData({ ...formData, footerSubtitle: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Facebook Link</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.socialLinkFacebook}
+              onChange={(e) => setFormData({ ...formData, socialLinkFacebook: e.target.value })}
+            />
+          </div>
         </div>
 
         <div className="pt-4 flex justify-end">

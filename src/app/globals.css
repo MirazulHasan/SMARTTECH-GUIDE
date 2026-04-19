@@ -71,6 +71,7 @@
   --color-card-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(0, 0, 0, 0.1);
   --text-muted: #64748b;
+  --bg-glow-opacity: 0.08;
 }
 
 :root[data-theme="dark"] {
@@ -79,6 +80,7 @@
   --color-card-bg: rgba(10, 15, 30, 0.8);
   --glass-border: rgba(255, 255, 255, 0.1);
   --text-muted: #94a3b8;
+  --bg-glow-opacity: 0.4;
 }
 
 body {
@@ -573,28 +575,37 @@ body {
 .bb8:hover .bb8__head::after { background-position: 0 0 !important; }
 
 /* Newsletter Styles (Cyberpunk Overhaul) */
-.input__container {
+/* Reusable Cyberpunk Box/Card Style */
+@utility cyber-box {
   position: relative;
-  background: rgba(5, 5, 20, 0.9);
+  background: var(--color-card-bg);
+  backdrop-filter: blur(10px);
   padding: 30px;
   display: flex;
+  flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
   border: 2px solid var(--color-primary);
-  max-width: 500px;
-  width: 100%;
   transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
   transform: skewX(-8deg);
   animation: neon-flicker 4s infinite;
   box-shadow: 0 0 30px rgba(0, 242, 255, 0.3), inset 0 0 20px rgba(0, 242, 255, 0.1);
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.4), inset 0 0 20px rgba(0, 242, 255, 0.2);
+    transform: skewX(-8deg) scale(1.02);
+    animation: none;
+  }
 }
 
-.input__container:hover {
-  border-color: var(--color-secondary);
-  box-shadow: 0 0 50px rgba(255, 0, 255, 0.4), inset 0 0 20px rgba(255, 0, 255, 0.2);
-  transform: skewX(-8deg) scale(1.02);
-  animation: none;
+.input__container {
+  @apply cyber-box;
+  max-width: 500px;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
 }
 
 .shadow__input {
@@ -649,7 +660,7 @@ body {
   padding: 15px;
   font-size: 16px;
   background: rgba(0, 242, 255, 0.05);
-  color: white;
+  color: var(--foreground);
   transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
   position: relative;
   z-index: 3;
@@ -664,7 +675,8 @@ body {
 }
 
 .input__search::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
+  opacity: 0.5;
   font-weight: normal;
   text-transform: uppercase;
   font-size: 12px;
@@ -683,4 +695,10 @@ body {
   z-index: 4;
   letter-spacing: 2px;
   box-shadow: 0 0 10px var(--color-primary);
+}
+
+.bg-dashed-line {
+  background-image: linear-gradient(to right, #00f2ff 50%, transparent 50%);
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
 }

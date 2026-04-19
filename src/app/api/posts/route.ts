@@ -18,15 +18,15 @@ export async function GET() {
 
 // POST create new post
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
-    const body = await req.json();
-    const { title, content, excerpt, coverImage, categoryId, published, featured } = body;
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Generate a random stable slug (numerical IDs work better with HTML titles)
-    const slug = `post-${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    const body = await req.json();
+    const { title, content, excerpt, coverImage, categoryId, published, featured, customUrl, slug: customSlug } = body;
+
+    // Use custom slug or fallback to random ID
+    const slug = customSlug?.trim() || `post-${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user?.email || "" }
@@ -43,7 +43,8 @@ export async function POST(req: Request) {
         content,
         excerpt,
         coverImage: coverImage || null,
-        categoryId: categoryId === "" ? undefined : categoryId,
+        categoryId: categoryId || null,
+        customUrl: customUrl || null,
         published,
         featured,
         authorId: user.id,

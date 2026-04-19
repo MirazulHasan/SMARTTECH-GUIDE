@@ -20,29 +20,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 // PUT update post
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { id } = await params;
     const body = await req.json();
-    const { title, content, excerpt, coverImage, categoryId, published, featured } = body;
+    const { title, content, excerpt, coverImage, categoryId, published, featured, customUrl, slug } = body;
 
     const existingPost = await prisma.post.findUnique({ where: { id } });
     if (!existingPost) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    // Lock the slug once created to prevent broken links from HTML title changes
-    const slug = existingPost.slug;
 
     const post = await prisma.post.update({
       where: { id },
       data: {
         title,
-        slug,
+        slug: slug || existingPost.slug,
         content,
         excerpt,
         coverImage: coverImage || null,
-        categoryId: categoryId === "" ? undefined : categoryId,
+        categoryId: categoryId || null,
         published,
         featured,
       },
@@ -57,10 +54,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 // DELETE post
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { id } = await params;
     await prisma.post.delete({ where: { id } });
     return NextResponse.json({ success: true });

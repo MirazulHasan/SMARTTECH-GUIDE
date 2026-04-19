@@ -26,6 +26,11 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import TechBackground from "@/components/TechBackground";
+
+import { PostProvider } from "@/context/PostContext";
+import PostViewer from "@/components/PostViewer";
 
 export default function RootLayout({
   children,
@@ -33,10 +38,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable}`}>
-      <body className="antialiased" suppressHydrationWarning={true}>
-        {children}
-        <Toaster richColors position="bottom-right" theme="dark" />
+    <html lang="en" className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'dark';
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="antialiased min-h-screen bg-transparent" suppressHydrationWarning={true}>
+        <ThemeProvider>
+          <PostProvider>
+            <TechBackground />
+            {children}
+            <PostViewer />
+            <Toaster richColors position="bottom-right" />
+          </PostProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

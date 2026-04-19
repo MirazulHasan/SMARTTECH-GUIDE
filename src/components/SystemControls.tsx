@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, Moon, Sun, CloudSun } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 
 export default function SystemControls() {
@@ -28,19 +27,22 @@ export default function SystemControls() {
   }, []);
 
   return (
-    <div className="flex items-center gap-4 px-4 font-[var(--font-space)] text-xs font-bold text-white/70">
+    <div className="flex items-center gap-4 px-4 font-[var(--font-space)] text-xs font-bold text-foreground">
       {/* Time */}
-      <div className="hidden lg:flex items-center gap-2 border-r border-white/10 pr-4 h-6">
+      <div className="hidden lg:flex items-center gap-2 border-r border-foreground/10 pr-4 h-6 opacity-70">
         <span>{time}</span>
       </div>
 
-      {/* Admin Button */}
+      {/* Admin Button with Glow */}
       <Link
         href="/admin"
-        className="flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#a855f7] to-[#ec4899] text-white hover:opacity-90 transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+        className="flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-[#a855f7] to-[#ec4899] text-white hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.7),0_0_40px_rgba(236,72,153,0.3)] group relative overflow-hidden"
       >
-        <Settings size={14} className="animate-spin-slow" />
-        <span className="text-xs font-bold uppercase tracking-widest font-[var(--font-space)]">Admin</span>
+        <Settings size={14} className="animate-spin-slow group-hover:rotate-180 transition-transform duration-1000" />
+        <span className="text-xs font-black uppercase tracking-widest font-[var(--font-space)]">Admin</span>
+        
+        {/* Subtle Shine Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
       </Link>
     </div>
   );

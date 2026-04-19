@@ -56,11 +56,11 @@ const WeatherCard = () => {
           <div className="detail-footer px-6 py-4 flex items-center justify-between">
             <div className="aqi-stat">
               <span className="metric-label">AQI INDEX</span>
-              <div className="font-bold text-lg font-[var(--font-space)]">42</div>
+              <div className="font-bold text-lg font-[var(--font-space)] text-foreground">42</div>
             </div>
             <div className="realfeel-stat text-right">
               <span className="metric-label">REAL FEEL</span>
-              <div className="font-bold text-lg font-[var(--font-space)]">31°C</div>
+              <div className="font-bold text-lg font-[var(--font-space)] text-foreground">31°C</div>
             </div>
           </div>
 
@@ -95,10 +95,12 @@ const WeatherCard = () => {
           padding: 1.5rem;
           z-index: 20;
           overflow: hidden;
-          background: rgba(10, 15, 30, 0.9);
-          border: 1px solid rgba(0, 242, 255, 0.2);
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8),
-                      inset 0 0 15px rgba(0, 242, 255, 0.05);
+          background: var(--color-card-bg);
+          backdrop-filter: blur(16px);
+          border: 2px solid var(--color-primary);
+          box-shadow: 0 0 20px rgba(0, 242, 255, 0.3),
+                      inset 0 0 15px rgba(0, 242, 255, 0.1);
+          animation: neon-flicker 4s infinite;
           transition: all 0.4s ease;
           cursor: pointer;
         }
@@ -110,12 +112,12 @@ const WeatherCard = () => {
           right: 8px;
           height: 140px;
           border-radius: 30px;
-          background: rgba(15, 20, 40, 0.98);
+          background: var(--color-card-bg);
           z-index: 1;
           opacity: 0;
           transform: translateY(0);
           transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--glass-border);
           display: flex;
           flex-direction: column;
         }
@@ -132,8 +134,8 @@ const WeatherCard = () => {
           opacity: 1;
           transform: translateY(16px);
           z-index: 15; 
-          border-color: rgba(0, 242, 255, 0.3);
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+          border-color: var(--color-primary);
+          box-shadow: 0 25px 50px rgba(0, 242, 255, 0.2);
         }
 
         .weather-header {
@@ -167,7 +169,7 @@ const WeatherCard = () => {
           font-weight: 900;
           line-height: 1;
           font-family: var(--font-space);
-          color: #fff;
+          color: var(--foreground);
           text-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
         }
 
@@ -175,7 +177,7 @@ const WeatherCard = () => {
           font-size: 0.65rem;
           font-weight: 700;
           letter-spacing: 0.15em;
-          color: #94a3b8;
+          color: var(--text-muted);
           font-family: var(--font-space);
         }
 
@@ -184,8 +186,8 @@ const WeatherCard = () => {
           grid-template-columns: 1fr 1fr;
           margin-top: 2rem;
           padding: 1.5rem;
-          background: rgba(255, 255, 255, 0.02);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          background: rgba(128, 128, 128, 0.05);
+          border-bottom: 1px solid var(--glass-border);
         }
 
         .metric-box {
@@ -199,7 +201,7 @@ const WeatherCard = () => {
           font-size: 0.55rem;
           font-weight: 800;
           letter-spacing: 0.2em;
-          color: #64748b;
+          color: var(--text-muted);
           text-transform: uppercase;
           font-family: var(--font-space);
         }

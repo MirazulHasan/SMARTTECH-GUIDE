@@ -14,7 +14,11 @@ export default async function Home() {
     }),
     prisma.siteSettings.findUnique({ where: { id: "singleton" } }) as Promise<any>,
     prisma.post.findMany({
-      where: { published: true },
+      where: { 
+        published: true,
+        featured: true,
+        category: { name: "Free Games" }
+      },
       orderBy: { createdAt: "desc" },
       take: 6,
       include: { category: true }
@@ -29,9 +33,7 @@ export default async function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-[#00d4ff33] overflow-x-hidden relative">
-      <TechBackground />
-
+    <main className="min-h-screen bg-transparent text-foreground selection:bg-[#00d4ff33] overflow-x-hidden relative">
       {/* Centered Minimalist Hero */}
       <section className="relative min-h-[100dvh] flex flex-col items-center justify-center text-center px-4 z-10 overflow-hidden">
         {/* Dynamic Background Elements */}
@@ -73,32 +75,37 @@ export default async function Home() {
 
       {/* Categories Selection */}
       <section id="explore" className="container mx-auto px-6 py-32">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-bold font-[var(--font-outfit)] mb-4">Explore Our Guides</h2>
-            <p className="text-[#64748b] text-lg max-w-lg">Hand-picked categories to help you master your PC and discover the latest tech secrets.</p>
-          </div>
-          <div className="h-px bg-gradient-to-r from-[#00d4ff33] to-transparent flex-grow hidden md:block mx-12 mb-6" />
+        <div className="mb-20 text-center relative z-20">
+          <h2 className="text-4xl md:text-5xl font-black gradient-text italic uppercase tracking-tighter">
+            {settings?.exploreTitle || "Explore Our Guides"}
+          </h2>
+          <div className="h-1.5 w-48 bg-[#a855f7] mx-auto mt-4 shadow-[0_0_20px_#a855f7] skew-x-[-20deg]" />
+          <p className="text-[#64748b] text-lg max-w-lg mx-auto mt-6">
+            {settings?.exploreSubtitle || "Hand-picked categories to help you master your PC."}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-12 gap-y-16 py-10">
           {categories.map((item: any, idx: number) => (
             <Link
               key={idx}
               href={`/category/${item.slug}`}
-              className="group relative bg-[#050510] p-10 border border-[#00f2ff33] hover:border-[#ff00ff] transition-all duration-500 flex flex-col items-start overflow-hidden shadow-[inset_0_0_20px_rgba(0,242,255,0.05)]"
+              className="cyber-box group relative w-full h-full min-h-[320px]"
             >
-              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#ff00ff22] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Mechanical Corner Badge */}
+              <div className="absolute -top-3 left-4 bg-[#00f2ff] text-black font-black px-3 py-1 text-[10px] tracking-[0.2em] shadow-[0_0_10px_#00f2ff] skew-x-[8deg] z-10 transition-transform group-hover:scale-110">
+                CAT-{String(idx + 1).padStart(2, '0')}
+              </div>
 
-              <div className="w-16 h-16 bg-[#00f2ff0a] border border-[#00f2ff33] flex items-center justify-center mb-8 text-[#00f2ff] group-hover:bg-[#00f2ff] group-hover:text-black transition-all duration-500 group-hover:shadow-[0_0_30px_#00f2ff]">
+              <div className="w-16 h-16 bg-[#00f2ff0a] border border-[#00f2ff33] flex items-center justify-center mb-8 text-[#00f2ff] group-hover:bg-[#00f2ff] group-hover:text-black transition-all duration-500 group-hover:shadow-[0_0_30px_#00f2ff] skew-x-[8deg]">
                 {categoryIcons[item.name] || <Newspaper />}
               </div>
 
-              <h3 className="text-2xl font-bold mb-3 group-hover:text-[#00d4ff] transition-colors">{item.name}</h3>
-              <p className="text-[#64748b] mb-8 text-base leading-relaxed">{item._count.posts} Premium Articles</p>
+              <h3 className="text-2xl font-black mb-3 group-hover:text-[#00f2ff] transition-colors italic uppercase tracking-wider skew-x-[8deg]">{item.name}</h3>
+              <p className="text-[#64748b] mb-8 text-sm leading-relaxed font-bold skew-x-[8deg]">{item._count.posts} Premium Articles</p>
 
-              <div className="mt-auto flex items-center text-[#00d4ff] font-extrabold text-xs uppercase tracking-[0.2em] opacity-60 group-hover:opacity-100 transition-all">
-                Discover <ChevronRight className="w-4 h-4 ml-1 group-hover:ml-3 transition-all" />
+              <div className="mt-auto flex items-center text-[#00f2ff] font-black text-[10px] uppercase tracking-[0.3em] opacity-60 group-hover:opacity-100 transition-all skew-x-[8deg]">
+                Access Data <ChevronRight className="w-4 h-4 ml-1 group-hover:ml-3 transition-all" />
               </div>
             </Link>
           ))}
@@ -107,8 +114,15 @@ export default async function Home() {
 
       {/* Newsletter Section */}
       <section className="container mx-auto px-6 py-24 border-t border-white/5 flex flex-col items-center text-center">
-        <h2 className="text-4xl font-bold font-[var(--font-outfit)] mb-4">Stay Updated</h2>
-        <p className="text-[#64748b] text-lg max-w-lg mb-16">Get the latest PC tips, tech news, and freebies delivered straight to your inbox.</p>
+        <div className="mb-16 text-center relative z-20">
+          <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
+            {settings?.stayUpdatedTitle || "Stay Updated"}
+          </h2>
+          <div className="h-1.5 w-48 bg-[#0b84f3] mx-auto mt-4 shadow-[0_0_20px_#0b84f3] skew-x-[-20deg]" />
+          <p className="text-[#64748b] text-lg max-w-lg mx-auto mt-6">
+            {settings?.stayUpdatedSubtitle || "Get the latest PC tips and tech news straight to your inbox."}
+          </p>
+        </div>
 
         <div className="input__container">
           <div className="shadow__input"></div>
@@ -127,26 +141,68 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Simple Global Footer */}
-      <footer className="py-20 border-t border-white/5 bg-white/[0.02]">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="text-center md:text-left">
-            <h3 className="text-2xl font-bold font-[var(--font-outfit)] mb-2">SmartTech Guide</h3>
-            <p className="text-[#64748b]">Smart Tips, Better You.</p>
-          </div>
+      <footer className="py-20 relative z-10 bg-transparent overflow-hidden">
+        {/* Global Connecting HUD line (Wire) */}
+        <div className="absolute top-1/2 left-0 w-full h-px bg-dashed-line opacity-10 -translate-y-1/2" />
+        
+        {/* Top Gradient line */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00f2ff33] to-transparent" />
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+            {/* Title HUD Box */}
+            <div className="relative group bg-background/80 backdrop-blur-sm pr-10">
+              <div className="absolute -inset-4 border border-[#00f2ff22] skew-x-[-15deg] group-hover:border-[#00f2ff44] transition-all" />
+              <div className="relative border-l-4 border-[#00f2ff] pl-6 py-2">
+                <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-widest text-foreground">
+                  {settings?.footerTitle?.split(' ')[0] || "SmartTech"} <span className="text-[#00f2ff]">{settings?.footerTitle?.split(' ').slice(1).join(' ') || "Guide"}</span>
+                </h3>
+                <p className="text-[10px] uppercase tracking-[0.4em] text-[#64748b] font-bold mt-1">
+                  {settings?.footerSubtitle || "Smart Tips // Better You"}
+                </p>
+              </div>
+            </div>
 
-          <div className="flex flex-wrap justify-center gap-8 text-[#64748b] font-medium">
-            <Link href="/" className="hover:text-[#00d4ff] transition-colors">Home</Link>
-            <Link href="/news" className="hover:text-[#00d4ff] transition-colors">Tech News</Link>
-            <Link href="/free-games" className="hover:text-[#00d4ff] transition-colors">Free Games</Link>
-            <Link href="/tips" className="hover:text-[#00d4ff] transition-colors">PC Tips</Link>
-            <Link href="https://www.facebook.com/smarttechguide/" className="hover:text-[#00d4ff] transition-colors text-white font-bold">Facebook</Link>
-          </div>
+            {/* Navigation Links */}
+            <div className="flex flex-wrap justify-center gap-x-10 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] relative z-20 bg-background/80 backdrop-blur-sm px-6 py-2">
+              <Link href="/" className="hover:text-[#00f2ff] transition-all relative group">
+                Home
+                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
+              </Link>
+              <Link href="/news" className="hover:text-[#00f2ff] transition-all relative group">
+                Tech News
+                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
+              </Link>
+              <Link href="/free-games" className="hover:text-[#00f2ff] transition-all relative group">
+                Free Games
+                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
+              </Link>
+              <Link href="/tips" className="hover:text-[#00f2ff] transition-all relative group">
+                PC Tips
+                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
+              </Link>
+              <Link href={settings?.socialLinkFacebook || "https://facebook.com"} target="_blank" className="bg-[#00f2ff] text-black px-4 py-1 skew-x-[-15deg] hover:bg-white transition-all">
+                <span className="block skew-x-[15deg]">Facebook</span>
+              </Link>
+            </div>
 
-          <div className="text-[#64748b] text-sm md:text-right relative z-10">
-            &copy; {new Date().getFullYear()} SmartTech Guide.<br />
-            Powered by Passion.
+            {/* System Copyright */}
+            <div className="md:text-right border-r-2 border-[#64748b33] pr-6 py-2">
+              <div className="text-[10px] font-bold text-[#64748b] uppercase tracking-[0.2em] mb-1">
+                &copy; {new Date().getFullYear()} smarttech.sys
+              </div>
+              <div className="text-[9px] text-[#64748b] opacity-50 uppercase tracking-[0.1em]">
+                Powered by Passion // v2.0.4
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Bottom HUD accents */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 opacity-10">
+          <div className="w-2 h-2 rounded-full bg-[#00f2ff]" />
+          <div className="w-12 h-2 rounded-full bg-[#00f2ff]" />
+          <div className="w-2 h-2 rounded-full bg-[#00f2ff]" />
         </div>
       </footer>
     </main>

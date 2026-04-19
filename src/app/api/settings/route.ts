@@ -15,11 +15,27 @@ export async function GET() {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle } = body;
+    const { 
+      heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, 
+      siteName, siteTitle, exploreTitle, exploreSubtitle,
+      stayUpdatedTitle, stayUpdatedSubtitle, footerTitle, footerSubtitle,
+      socialLinkFacebook 
+    } = body;
     const settings = await prisma.siteSettings.upsert({
       where: { id: "singleton" },
-      update: { heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle },
-      create: { id: "singleton", heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle },
+      update: { 
+        heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, 
+        siteName, siteTitle, exploreTitle, exploreSubtitle,
+        stayUpdatedTitle, stayUpdatedSubtitle, footerTitle, footerSubtitle,
+        socialLinkFacebook 
+      },
+      create: { 
+        id: "singleton", 
+        heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, 
+        siteName, siteTitle, exploreTitle, exploreSubtitle,
+        stayUpdatedTitle, stayUpdatedSubtitle, footerTitle, footerSubtitle,
+        socialLinkFacebook 
+      },
     });
     return NextResponse.json(settings);
   } catch (error) {

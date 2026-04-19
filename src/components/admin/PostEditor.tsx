@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Image as ImageIcon, X, Loader2, ChevronDown, Check } from "lucide-react";
+import { Save, Image as ImageIcon, X, Loader2, ChevronDown, Check, ArrowLeft, AlertCircle } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
 interface PostEditorProps {
@@ -17,6 +17,7 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
     content: initialData?.content || "",
     coverImage: initialData?.coverImage || "",
     categoryId: initialData?.categoryId || "",
+    slug: initialData?.slug || "",
     published: initialData?.published || false,
     featured: initialData?.featured || false,
   });
@@ -30,6 +31,7 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
 
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
   const editorRef = useRef<any>(null);
 
   const insertTag = (tag: string, endTag: string = "", targetId: string = 'post-editor-textarea') => {
@@ -67,7 +69,6 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
 
     if (targetId === 'post-editor-textarea') {
       setFormData(prev => ({ ...prev, content: newText }));
-      // Logic for history
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push(newText);
       setHistory(newHistory);
@@ -104,13 +105,11 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
   const handleKeyDown = (e: React.KeyboardEvent, targetId: string) => {
     const isMod = e.ctrlKey || e.metaKey;
 
-    // Tab Support (Skip for Monaco)
     if (e.key === 'Tab' && targetId !== 'post-editor-textarea') {
       e.preventDefault();
       insertTag('  ', '', targetId);
     }
 
-    // Smart Enter (Maintain Indentation - Skip for Monaco)
     if (e.key === 'Enter' && targetId !== 'post-editor-textarea') {
       const textarea = e.currentTarget as HTMLTextAreaElement;
       if (textarea && typeof textarea.selectionStart === 'number') {
@@ -128,7 +127,6 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
       }
     }
 
-    // Undo/Redo (Skip custom undo for Monaco, it handles itself)
     if (targetId !== 'post-editor-textarea') {
       if (isMod && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -155,25 +153,15 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
       insertTag('<u>', '</u>', targetId);
     }
 
-    // Header Shortcuts
-    if (isMod && e.key === '1') {
+    if (isMod && (e.key === '1' || e.key === '2' || e.key === '3')) {
       e.preventDefault();
-      insertTag('<h1>', '</h1>', targetId);
-    }
-    if (isMod && e.key === '2') {
-      e.preventDefault();
-      insertTag('<h2>', '</h2>', targetId);
-    }
-    if (isMod && e.key === '3') {
-      e.preventDefault();
-      insertTag('<h3>', '</h3>', targetId);
+      insertTag(`<h${e.key}>`, `</h${e.key}>`, targetId);
     }
 
-    // Capture state for history on space or enter (Skip for Monaco)
     if ((e.key === ' ' || e.key === 'Enter') && targetId !== 'post-editor-textarea') {
       const newHistory = history.slice(0, historyIndex + 1);
       if (newHistory[newHistory.length - 1] !== formData.content) {
-        newHistory.push(formData.title); // Note: we should probably be tracking formData title instead of content here if this is just for the title editor
+        newHistory.push(formData.title);
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
       }
@@ -183,6 +171,28 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
     if (isMod && e.key.toLowerCase() === 's') {
       e.preventDefault();
       handleSubmit(e as any);
+    }
+  };
+
+  const hasChanges = () => {
+    const original = {
+      title: initialData?.title || "",
+      excerpt: initialData?.excerpt || "",
+      content: initialData?.content || "",
+      coverImage: initialData?.coverImage || "",
+      categoryId: initialData?.categoryId || "",
+      slug: initialData?.slug || "",
+      published: initialData?.published || false,
+      featured: initialData?.featured || false,
+    };
+    return JSON.stringify(formData) !== JSON.stringify(original);
+  };
+
+  const handleBackAction = () => {
+    if (hasChanges()) {
+      setShowDiscardModal(true);
+    } else {
+      router.back();
     }
   };
 
@@ -227,6 +237,23 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
     setLoading(true);
     setErrorMsg("");
 
+    // VALIDATION: Every section must be filled
+    const requiredFields = [
+      { key: "title", label: "Article Title" },
+      { key: "content", label: "Article Content" },
+      { key: "coverImage", label: "Cover Image" },
+      { key: "categoryId", label: "Category" },
+      { key: "slug", label: "URL Slug / Path" }
+    ];
+
+    const missing = requiredFields.filter(f => !formData[f.key as keyof typeof formData]);
+    
+    if (missing.length > 0) {
+      setLoading(false);
+      setErrorMsg(`⚠️ Gentle Reminder: Please fill out the following sections: ${missing.map(m => m.label).join(", ")}`);
+      return;
+    }
+
     try {
       const url = isEdit ? `/api/posts/${initialData.id}` : "/api/posts";
       const method = isEdit ? "PUT" : "POST";
@@ -246,17 +273,25 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
 
       if (res.ok) {
         setSuccess(true);
-        router.refresh(); // Update site data in background
+        router.refresh(); 
         setTimeout(() => {
-          setSuccess(false); // Hide success message so you can keep editing
-        }, 3000);
+          setSuccess(false); 
+          router.push("/admin");
+        }, 2000);
       } else {
-        const errorData = await res.json();
-        setErrorMsg(errorData.error || "Failed to save post");
+        const contentType = res.headers.get("content-type");
+        let errorMessage = "Failed to save post";
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        }
+        setErrorMsg(errorMessage);
       }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg("An unexpected error occurred.");
+    } catch (err: any) {
+      console.error("Fetch Error:", err);
+      setErrorMsg(err.message === "Failed to fetch" 
+        ? "Network error: Connection to the server was lost or refused." 
+        : `An unexpected error occurred: ${err.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -275,6 +310,45 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
           </div>
         </div>
       )}
+
+      {showDiscardModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/60 backdrop-blur-md px-4">
+          <div className="glass p-10 rounded-[2.5rem] max-w-md w-full animate-in zoom-in-95 duration-200 border border-white/10 shadow-[0_0_80px_rgba(239,68,68,0.15)]">
+            <div className="w-20 h-20 rounded-3xl bg-red-500/10 text-red-400 flex items-center justify-center mb-8 mx-auto rotate-3">
+              <AlertCircle className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-bold font-[var(--font-space)] text-center mb-3">Discard Changes?</h2>
+            <p className="text-[#64748b] text-center mb-10 text-lg leading-relaxed">
+              Your hard work on this article will be lost. This action cannot be undone.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => setShowDiscardModal(false)}
+                className="py-4 rounded-2xl bg-white/5 border border-white/5 font-bold hover:bg-white/10 transition-all"
+              >
+                Keep Editing
+              </button>
+              <button 
+                onClick={() => router.push("/admin")}
+                className="py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-[0_10px_30px_rgba(239,68,68,0.3)]"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <button 
+          onClick={handleBackAction}
+          className="group flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/5 hover:border-[#00d4ff33] text-[#64748b] hover:text-[#00d4ff] transition-all"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-bold font-[var(--font-space)] uppercase tracking-widest">Back to Admin</span>
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8 pb-32">
         {/* Primary Content Editor */}
         <div className="lg:col-span-2 space-y-8">
@@ -595,6 +669,32 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
                   ))}
                 </select>
                 <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b] pointer-events-none group-focus-within:text-[#00d4ff]" />
+              </div>
+            </div>
+
+            <div className="glass p-8 rounded-3xl space-y-6">
+              <h3 className="font-bold border-b border-white/5 pb-4 mb-2">Article Link</h3>
+              
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold text-muted-foreground px-1 uppercase tracking-widest">URL Slug / Path</label>
+                <div className="flex items-center bg-muted/10 border border-foreground/5 rounded-xl px-4 py-3 gap-2">
+                  <span className="text-[10px] text-muted-foreground font-mono">/blog/</span>
+                  <input
+                    type="text"
+                    className="flex-1 bg-transparent text-sm outline-none text-[#00d4ff] font-mono placeholder:text-[#334155]"
+                    placeholder="my-custom-path"
+                    value={formData.slug}
+                    onChange={(e) => {
+                      const val = e.target.value.toLowerCase()
+                        .replace(/[^a-z0-9-]/g, '-')
+                        .replace(/-+/g, '-');
+                      setFormData({ ...formData, slug: val });
+                    }}
+                  />
+                </div>
+                <p className="text-[9px] text-muted-foreground px-1 italic leading-tight">
+                  * Defines the page address. Only letters, numbers, and dashes.
+                </p>
               </div>
             </div>
 

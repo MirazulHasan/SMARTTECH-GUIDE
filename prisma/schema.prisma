@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -31,6 +31,7 @@ model Post {
   author        User      @relation(fields: [authorId], references: [id])
   categoryId    String?
   category      Category? @relation(fields: [categoryId], references: [id])
+  customUrl     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -53,6 +54,13 @@ model SiteSettings {
   logoUrl          String?  @default("https://res.cloudinary.com/dj9m8f8u6/image/upload/v1712520000/default-logo.png")
   heroTitle        String?
   heroSubtitle     String?
+  exploreTitle     String?  @default("EXPLORE OUR GUIDES")
+  exploreSubtitle  String?  @default("Hand-picked categories to help you master your PC and discover the latest tech secrets.")
+  stayUpdatedTitle String?  @default("Stay Updated")
+  stayUpdatedSubtitle String? @default("Get the latest PC tips, tech news, and freebies delivered straight to your inbox.")
+  footerTitle      String?  @default("SmartTech Guide")
+  footerSubtitle   String?  @default("Smart Tips, Better You.")
+  socialLinkFacebook String? @default("https://www.facebook.com/smarttechguide/")
   tickerItems      String?  // JSON string of items
   footerText       String?
   updatedAt        DateTime @updatedAt
