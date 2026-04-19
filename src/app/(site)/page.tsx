@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Gamepad2, Newspaper, Download, Lightbulb, ChevronRight, Monitor, ExternalLink } from "lucide-react";
+import { Gamepad2, Newspaper, Download, Lightbulb, ChevronRight, Monitor, ExternalLink, Cpu, Code, Zap, Rocket } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import TechBackground from "@/components/TechBackground";
 import CyberTitle from "@/components/CyberTitle";
