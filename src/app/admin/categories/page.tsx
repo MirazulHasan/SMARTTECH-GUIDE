@@ -75,7 +75,8 @@ export default function CategoriesPage() {
         }
       },
       cancel: {
-        label: "Cancel"
+        label: "Cancel",
+        onClick: () => {}
       }
     });
   };
