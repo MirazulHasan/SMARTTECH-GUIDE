@@ -28,10 +28,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const body = await req.json();
     const { title, content, excerpt, coverImage, categoryId, published, featured } = body;
 
-    const slug = title
-      .toLowerCase()
-      .replace(/ /g, "-")
-      .replace(/[^\w-]+/g, "");
+    const existingPost = await prisma.post.findUnique({ where: { id } });
+    if (!existingPost) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // Lock the slug once created to prevent broken links from HTML title changes
+    const slug = existingPost.slug;
 
     const post = await prisma.post.update({
       where: { id },
@@ -40,16 +41,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         slug,
         content,
         excerpt,
-        coverImage,
-        categoryId,
+        coverImage: coverImage || null,
+        categoryId: categoryId === "" ? undefined : categoryId,
         published,
         featured,
       },
     });
 
     return NextResponse.json(post);
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json({ error: error.message || "Failed to update post" }, { status: 500 });
   }
 }
 

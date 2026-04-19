@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { Monitor, Gamepad2, DownloadCloud, Newspaper, Cpu, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { Gamepad2, DownloadCloud, Newspaper, Cpu, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
-  const [activeItem, setActiveItem] = useState("Games");
+  const [activeItem, setActiveItem] = useState("Free Games");
+  const [logoUrl, setLogoUrl] = useState("");
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(data => {
+        if (data.logoUrl) setLogoUrl(data.logoUrl);
+      });
+  }, []);
 
   const navItems = [
-    { name: "Games", icon: <Gamepad2 size={16} />, href: "/category/games" },
+    { name: "Free Games", icon: <Gamepad2 size={16} />, href: "/category/free-games" },
     { name: "Software", icon: <DownloadCloud size={16} />, href: "/category/software" },
     { name: "News", icon: <Newspaper size={16} />, href: "/category/news" },
     { name: "PC Tips", icon: <Cpu size={16} />, href: "/category/pc-tips" },
@@ -16,12 +25,16 @@ export default function Navbar() {
 
   return (
     <div className="flex items-center gap-1 sm:gap-4 px-2">
-      {/* Profile Avatar */}
-      <div className="w-10 h-10 rounded-full border-2 border-[#ff00ff] p-0.5 overflow-hidden flex-shrink-0">
-        <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#00d4ff] to-[#a855f7] flex items-center justify-center">
-          <Monitor className="text-white w-5 h-5" />
+      {/* Profile Avatar / Logo */}
+      <Link href="/" className="w-10 h-10 rounded-full border-2 border-[#ff00ff] p-0.5 overflow-hidden flex-shrink-0 hover:scale-105 transition-transform">
+        <div className="w-full h-full rounded-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-[#00d4ff] to-[#a855f7]" />
+          )}
         </div>
-      </div>
+      </Link>
 
       {/* Navigation Links */}
       <div className="hidden md:flex items-center gap-1">

@@ -4,14 +4,21 @@ import Navbar from "@/components/Navbar";
 import TechBackground from "@/components/TechBackground";
 import CyberTitle from "@/components/CyberTitle";
 import { prisma } from "@/lib/prisma";
+import PostCarousel from "@/components/PostCarousel";
 
 export default async function Home() {
-  const [categories, settings] = await Promise.all([
-    prisma.category.findMany({ 
+  const [categories, settings, recentPosts] = await Promise.all([
+    prisma.category.findMany({
       include: { _count: { select: { posts: true } } },
       take: 4
     }),
-    prisma.siteSettings.findUnique({ where: { id: "singleton" } }) as Promise<any>
+    prisma.siteSettings.findUnique({ where: { id: "singleton" } }) as Promise<any>,
+    prisma.post.findMany({
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      include: { category: true }
+    })
   ]);
 
   const categoryIcons: Record<string, React.ReactNode> = {
@@ -24,14 +31,14 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-[#00d4ff33] overflow-x-hidden relative">
       <TechBackground />
-      
+
       {/* Centered Minimalist Hero */}
       <section className="relative min-h-[100dvh] flex flex-col items-center justify-center text-center px-4 z-10 overflow-hidden">
         {/* Dynamic Background Elements */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-tr from-[#00d4ff08] via-[#a855f708] to-transparent rounded-full blur-[150px] pointer-events-none animate-pulse-slow active-glow" />
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#00d4ff05] rounded-full blur-[120px] pointer-events-none animate-float" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-[#a855f708] rounded-full blur-[150px] pointer-events-none animate-float" style={{ animationDelay: "2s" }} />
-        
+
         {/* Hero Content Wrapper */}
         <div className="max-w-5xl relative z-20 w-full flex flex-col items-center gap-y-12">
           <CyberTitle siteName={settings?.siteName || "SMART"} siteTitle={settings?.siteTitle || "GUIDE"} />
@@ -51,7 +58,7 @@ export default async function Home() {
                 INITIALIZE <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
               </span>
             </Link>
-            
+
             <Link href="https://www.facebook.com/smarttechguide/" target="_blank" className="px-10 py-5 border border-[#ff00ff]/30 text-[#ff00ff] font-bold inline-flex items-center gap-2 hover:bg-[#ff00ff0a] transition-all skew-x-[-10deg]">
               <span className="skew-x-[10deg] flex items-center gap-2 text-sm uppercase italic">
                 Connect_Net <ExternalLink className="w-4 h-4" />
@@ -60,6 +67,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured Carousel Section */}
+      <PostCarousel posts={recentPosts} />
 
       {/* Categories Selection */}
       <section id="explore" className="container mx-auto px-6 py-32">
@@ -73,20 +83,20 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories.map((item: any, idx: number) => (
-            <Link 
-              key={idx} 
+            <Link
+              key={idx}
               href={`/category/${item.slug}`}
               className="group relative bg-[#050510] p-10 border border-[#00f2ff33] hover:border-[#ff00ff] transition-all duration-500 flex flex-col items-start overflow-hidden shadow-[inset_0_0_20px_rgba(0,242,255,0.05)]"
             >
               <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#ff00ff22] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
+
               <div className="w-16 h-16 bg-[#00f2ff0a] border border-[#00f2ff33] flex items-center justify-center mb-8 text-[#00f2ff] group-hover:bg-[#00f2ff] group-hover:text-black transition-all duration-500 group-hover:shadow-[0_0_30px_#00f2ff]">
                 {categoryIcons[item.name] || <Newspaper />}
               </div>
-              
+
               <h3 className="text-2xl font-bold mb-3 group-hover:text-[#00d4ff] transition-colors">{item.name}</h3>
               <p className="text-[#64748b] mb-8 text-base leading-relaxed">{item._count.posts} Premium Articles</p>
-              
+
               <div className="mt-auto flex items-center text-[#00d4ff] font-extrabold text-xs uppercase tracking-[0.2em] opacity-60 group-hover:opacity-100 transition-all">
                 Discover <ChevronRight className="w-4 h-4 ml-1 group-hover:ml-3 transition-all" />
               </div>
@@ -99,14 +109,14 @@ export default async function Home() {
       <section className="container mx-auto px-6 py-24 border-t border-white/5 flex flex-col items-center text-center">
         <h2 className="text-4xl font-bold font-[var(--font-outfit)] mb-4">Stay Updated</h2>
         <p className="text-[#64748b] text-lg max-w-lg mb-16">Get the latest PC tips, tech news, and freebies delivered straight to your inbox.</p>
-        
+
         <div className="input__container">
           <div className="shadow__input"></div>
-          <input 
-            type="email" 
-            name="email" 
-            className="input__search" 
-            placeholder="Enter your email" 
+          <input
+            type="email"
+            name="email"
+            className="input__search"
+            placeholder="Enter your email"
             autoComplete="off"
           />
           <button className="input__button__shadow" aria-label="Subscribe">
@@ -124,7 +134,7 @@ export default async function Home() {
             <h3 className="text-2xl font-bold font-[var(--font-outfit)] mb-2">SmartTech Guide</h3>
             <p className="text-[#64748b]">Smart Tips, Better You.</p>
           </div>
-          
+
           <div className="flex flex-wrap justify-center gap-8 text-[#64748b] font-medium">
             <Link href="/" className="hover:text-[#00d4ff] transition-colors">Home</Link>
             <Link href="/news" className="hover:text-[#00d4ff] transition-colors">Tech News</Link>
@@ -132,7 +142,7 @@ export default async function Home() {
             <Link href="/tips" className="hover:text-[#00d4ff] transition-colors">PC Tips</Link>
             <Link href="https://www.facebook.com/smarttechguide/" className="hover:text-[#00d4ff] transition-colors text-white font-bold">Facebook</Link>
           </div>
-          
+
           <div className="text-[#64748b] text-sm md:text-right relative z-10">
             &copy; {new Date().getFullYear()} SmartTech Guide.<br />
             Powered by Passion.

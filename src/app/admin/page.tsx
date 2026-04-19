@@ -34,6 +34,10 @@ export default async function AdminDashboard() {
     { name: "Subscribers", value: "0", icon: <Users className="w-5 h-5" />, color: "bg-pink-500/10 text-pink-400" },
   ];
 
+  const stripHtml = (html: string) => {
+    return html.replace(/<[^>]*>?/gm, "");
+  };
+
   return (
     <div className="flex flex-col gap-10 text-foreground transition-colors duration-300">
       {/* Header */}
@@ -74,24 +78,28 @@ export default async function AdminDashboard() {
           <div className="space-y-4">
             {recentPosts.length > 0 ? (
               recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5">
+                <Link 
+                  key={post.id} 
+                  href={`/admin/posts/${post.id}`}
+                  className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5 cursor-pointer"
+                >
                   <div className="w-16 h-16 rounded-xl bg-white/10 flex-shrink-0 flex items-center justify-center overflow-hidden">
                     {post.coverImage ? (
-                      <img src={post.coverImage} className="w-full h-full object-cover" alt={post.title} />
+                      <img src={post.coverImage} className="w-full h-full object-cover" alt={stripHtml(post.title)} />
                     ) : (
                       <FileText className="w-6 h-6 text-[#64748b]" />
                     )}
                   </div>
                   <div className="flex-grow">
-                    <h3 className="font-bold text-base group-hover:text-[#00d4ff] transition-colors line-clamp-1">{post.title}</h3>
+                    <h3 className="font-bold text-base group-hover:text-[#00d4ff] transition-colors line-clamp-1">{stripHtml(post.title)}</h3>
                     <p className="text-xs text-[#64748b]">{post.category?.name || "Uncategorized"} • {new Date(post.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className="flex gap-2">
-                     <Link href={`/admin/posts/${post.id}`} className="p-2.5 rounded-xl bg-white/5 text-[#64748b] hover:bg-blue-500/20 hover:text-blue-400 transition-all">
+                     <div className="p-2.5 rounded-xl bg-white/5 text-[#64748b] group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-all">
                         <Edit className="w-4 h-4" />
-                     </Link>
+                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="py-12 text-center">

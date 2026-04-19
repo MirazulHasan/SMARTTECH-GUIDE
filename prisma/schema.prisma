@@ -50,6 +50,7 @@ model SiteSettings {
   id               String   @id @default("singleton")
   siteName         String?  @default("SMART")
   siteTitle        String?  @default("GUIDE")
+  logoUrl          String?  @default("https://res.cloudinary.com/dj9m8f8u6/image/upload/v1712520000/default-logo.png")
   heroTitle        String?
   heroSubtitle     String?
   tickerItems      String?  // JSON string of items

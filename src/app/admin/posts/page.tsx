@@ -36,6 +36,10 @@ export default function PostListPage() {
      }
   };
 
+  const stripHtml = (html: string) => {
+    return html.replace(/<[^>]*>?/gm, "");
+  };
+
   const filteredPosts = posts.filter(p => 
     p.title.toLowerCase().includes(search.toLowerCase()) ||
     p.category?.name.toLowerCase().includes(search.toLowerCase())
@@ -102,22 +106,21 @@ export default function PostListPage() {
                     filteredPosts.map((post) => (
                       <tr key={post.id} className="hover:bg-white/5 transition-colors group">
                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-4">
+                            <Link href={`/admin/posts/${post.id}`} className="flex items-center gap-4 group/item">
                                <div className="w-16 h-16 rounded-xl bg-[#0a0f1e] overflow-hidden flex-shrink-0 border border-white/5">
                                   <img 
                                     src={post.coverImage || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&q=80"} 
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                    className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" 
                                     alt="" 
                                   />
                                </div>
-                               <div>
-                                  <div className="font-bold text-lg mb-0.5 max-w-xs truncate">{post.title}</div>
-                                  <div className="text-[#64748b] text-xs font-mono">{post.slug}</div>
-                               </div>
-                            </div>
+                                <div>
+                                   <div className="font-bold text-sm mb-0.5 max-w-xs truncate group-hover/item:text-[#00d4ff] transition-colors">{stripHtml(post.title)}</div>
+                                </div>
+                            </Link>
                          </td>
                          <td className="px-6 py-5">
-                            <span className="px-3 py-1 rounded-full bg-white/5 text-xs font-bold text-[#64748b] border border-white/5">
+                            <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 text-[10px] font-bold text-[#64748b] border border-white/5 whitespace-nowrap uppercase tracking-wider">
                                 {post.category?.name || "Uncategorized"}
                             </span>
                          </td>

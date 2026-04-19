@@ -15,11 +15,11 @@ export async function GET() {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { heroTitle, heroSubtitle, tickerItems, footerText } = body;
+    const { heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle } = body;
     const settings = await prisma.siteSettings.upsert({
       where: { id: "singleton" },
-      update: { heroTitle, heroSubtitle, tickerItems, footerText },
-      create: { id: "singleton", heroTitle, heroSubtitle, tickerItems, footerText },
+      update: { heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle },
+      create: { id: "singleton", heroTitle, heroSubtitle, tickerItems, footerText, logoUrl, siteName, siteTitle },
     });
     return NextResponse.json(settings);
   } catch (error) {

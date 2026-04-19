@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   description: "Your ultimate destination for free games, free software, tech news, PC tips, tricks, and must-know websites that level up your tech game.",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +36,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable}`}>
       <body className="antialiased" suppressHydrationWarning={true}>
         {children}
+        <Toaster richColors position="bottom-right" theme="dark" />
       </body>
     </html>
   );
