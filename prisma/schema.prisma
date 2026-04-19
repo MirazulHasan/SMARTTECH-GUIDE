@@ -42,6 +42,7 @@ model Category {
   id        String   @id @default(cuid())
   name      String   @unique
   slug      String   @unique
+  icon      String?  @default("Newspaper")
   posts     Post[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,7 +50,7 @@ model Category {
 
 model SiteSettings {
   id               String   @id @default("singleton")
-  siteName         String?  @default("SMART")
+  siteName         String?  @default("SMART TECH")
   siteTitle        String?  @default("GUIDE")
   logoUrl          String?  @default("https://res.cloudinary.com/dj9m8f8u6/image/upload/v1712520000/default-logo.png")
   heroTitle        String?
@@ -61,6 +62,17 @@ model SiteSettings {
   footerTitle      String?  @default("SmartTech Guide")
   footerSubtitle   String?  @default("Smart Tips, Better You.")
   socialLinkFacebook String? @default("https://www.facebook.com/smarttechguide/")
+  socialLinks      String?  @default("[{\"platform\":\"Facebook\",\"url\":\"https://www.facebook.com/smarttechguide/\"}]")
+  heroStatusText     String?  @default("# SYSTEM READY // SMART_TIPS_V2.0")
+  heroButton1Text    String?  @default("INITIALIZE")
+  heroButton1Link    String?  @default("#explore")
+  heroButton2Text    String?  @default("CONNECT_NET")
+  heroButton2Link    String?  @default("/category/free-games")
+  splashTopLeft      String?  @default("SYS.VER.2.0.4 // BOOT_SEQ")
+  splashTopRight     String?  @default("AUTH: OVERRIDE_ACTV")
+  splashBottomLeft   String?  @default("CPU: OVERRIDE")
+  splashBottomRight  String?  @default("SEC: UNLOCKED")
+  splashLogs         String?  // JSON string
   tickerItems      String?  // JSON string of items
   footerText       String?
   updatedAt        DateTime @updatedAt

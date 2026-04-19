@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, Loader2, Info, Image as ImageIcon, Camera, Layers, Newspaper, ChevronRight } from "lucide-react";
+import { Save, Loader2, Info, Image as ImageIcon, Camera, Layers, Newspaper, ChevronRight, Share2, Plus, X, Trash2, ChevronDown, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import LogoEditor from "@/components/admin/LogoEditor";
 
@@ -21,7 +21,19 @@ export default function SettingsPage() {
     footerTitle: "SmartTech Guide",
     footerSubtitle: "Smart Tips, Better You.",
     socialLinkFacebook: "",
+    heroStatusText: "",
+    heroButton1Text: "",
+    heroButton1Link: "",
+    heroButton2Text: "",
+    heroButton2Link: "",
+    splashTopLeft: "SYS.VER.2.0.4 // BOOT_SEQ",
+    splashTopRight: "AUTH: OVERRIDE_ACTV",
+    splashBottomLeft: "CPU: OVERRIDE",
+    splashBottomRight: "SEC: UNLOCKED",
+    splashLogs: '[\n  "ESTABLISHING SECURE CONNECTION...",\n  "BYPASSING MAINFRAME FIREWALL...",\n  "DECRYPTING DATABASE OBJECTS...",\n  "MOUNTING USER INTERFACE...",\n  "SYSTEM READY."\n]',
+    socialLinks: "[]",
   });
+  const [socialLinks, setSocialLinks] = useState<{platform: string, url: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [logoEditor, setLogoEditor] = useState(false);
@@ -80,7 +92,19 @@ export default function SettingsPage() {
           footerTitle: data.footerTitle || "",
           footerSubtitle: data.footerSubtitle || "",
           socialLinkFacebook: data.socialLinkFacebook || "",
+          heroStatusText: data.heroStatusText || "",
+          heroButton1Text: data.heroButton1Text || "",
+          heroButton1Link: data.heroButton1Link || "",
+          heroButton2Text: data.heroButton2Text || "",
+          heroButton2Link: data.heroButton2Link || "",
+          splashTopLeft: data.splashTopLeft || "SYS.VER.2.0.4 // BOOT_SEQ",
+          splashTopRight: data.splashTopRight || "AUTH: OVERRIDE_ACTV",
+          splashBottomLeft: data.splashBottomLeft || "CPU: OVERRIDE",
+          splashBottomRight: data.splashBottomRight || "SEC: UNLOCKED",
+          splashLogs: data.splashLogs || '[\n  "ESTABLISHING SECURE CONNECTION...",\n  "BYPASSING MAINFRAME FIREWALL...",\n  "DECRYPTING DATABASE OBJECTS...",\n  "MOUNTING USER INTERFACE...",\n  "SYSTEM READY."\n]',
+          socialLinks: data.socialLinks || "[]",
         });
+        setSocialLinks(data.socialLinks ? JSON.parse(data.socialLinks) : []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -93,19 +117,43 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const submissionData = {
+      ...formData,
+      socialLinks: JSON.stringify(socialLinks)
+    };
     try {
       await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
-      toast.success("Settings saved successfully!");
+      toast.success("Profile saved successfully!", {
+        icon: "✓",
+      });
     } catch (err) {
       console.error(err);
       toast.error("An error occurred while saving settings");
     } finally {
       setLoading(false);
     }
+  };
+
+  const addSocialLink = () => {
+    setSocialLinks([...socialLinks, { platform: "Facebook", url: "" }]);
+  };
+
+  const removeSocialLink = (index: number) => {
+    setSocialLinks(socialLinks.filter((_, i) => i !== index));
+  };
+
+  const updateSocialLink = (index: number, field: string, value: string) => {
+    const newLinks = [...socialLinks];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setSocialLinks(newLinks);
+  };
+
+  const clearAllSocialLinks = () => {
+    setSocialLinks([]);
   };
 
   if (fetching) return <div className="flex justify-center py-40 animate-pulse text-muted-foreground">Loading configuration...</div>;
@@ -128,70 +176,72 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSubmit} className="glass rounded-3xl p-10 space-y-8 max-w-4xl border-white/5">
         {/* Profile Photo Section (Image 1 Style) */}
-        <div className="space-y-10">
+        <div className="flex flex-col items-center justify-center space-y-10">
           <div className="flex items-center gap-4">
             <div className="w-1.5 h-8 bg-[#a855f7] rounded-full shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
             <h2 className="text-3xl font-bold text-foreground font-[var(--font-space)]">
               Profile <span className="gradient-text">Photo</span>
             </h2>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 items-center">
+          
+          <div className="relative group">
             {/* Avatar Display */}
-            <div className="relative group mx-auto lg:mx-0">
-              <div className="w-44 h-44 rounded-full p-[3px] bg-gradient-to-tr from-[#a855f7] via-[#d946ef] to-[#a855f7] shadow-[0_0_50px_rgba(168,85,247,0.1)] group-hover:shadow-[0_0_60px_rgba(168,85,247,0.3)] transition-all duration-500">
-                <div className="w-full h-full rounded-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center relative border-4 border-[#0a0f1e]">
-                  {formData.logoUrl ? (
-                    <img 
-                      src={formData.logoUrl} 
-                      alt="Logo" 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    />
-                  ) : (
-                    <ImageIcon className="w-12 h-12 text-foreground/10" />
-                  )}
-                </div>
+            <div className="w-44 h-44 rounded-full p-[3px] bg-gradient-to-tr from-[#a855f7] via-[#d946ef] to-[#a855f7] shadow-[0_0_50px_rgba(168,85,247,0.1)] group-hover:shadow-[0_0_60px_rgba(168,85,247,0.3)] transition-all duration-500">
+              <div className="w-full h-full rounded-full bg-[#0a0f1e] overflow-hidden flex items-center justify-center relative border-4 border-[#0a0f1e]">
+                {formData.logoUrl ? (
+                  <img 
+                    src={formData.logoUrl} 
+                    alt="Logo" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                ) : (
+                  <ImageIcon className="w-12 h-12 text-foreground/10" />
+                )}
               </div>
-              
-              {/* Camera Button */}
-              <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#d946ef] border-4 border-[#0a0f1e] flex items-center justify-center text-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer z-10">
-                <Camera className="w-5 h-5" />
-                <input type="file" className="hidden" accept="image/*" onChange={handleLogoSelect} />
-              </label>
             </div>
-
-            {/* Upload Area */}
-            <div 
-              onClick={() => document.getElementById('logo-upload-box')?.click()}
-              className="h-44 rounded-[32px] border-2 border-dashed border-white/5 hover:border-[#a855f7]/50 bg-white/[0.02] hover:bg-[#a855f7]/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#a855f7]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                <ImageIcon className="w-7 h-7 text-[#a855f7]" />
-              </div>
-              
-              <div className="text-center space-y-0.5">
-                <p className="text-lg font-bold text-foreground">Upload Avatar</p>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[.25em]">max 10 MB</p>
-              </div>
-              
-              <input 
-                id="logo-upload-box" 
-                type="file" 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleLogoSelect} 
-              />
-            </div>
+            
+            {/* Camera Button */}
+            <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-gradient-to-br from-[#a855f7] to-[#d946ef] border-4 border-[#0a0f1e] flex items-center justify-center text-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer z-10">
+              <Camera className="w-5 h-5" />
+              <input type="file" className="hidden" accept="image/*" onChange={handleLogoSelect} />
+            </label>
           </div>
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 pt-6">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Monitor className="w-5 h-5 text-[#a855f7]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Identity Configuration</h3>
+          </div>
           <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest"> Hero Title </label>
-          <input
-            className="w-full bg-muted/10 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground"
-            value={formData.heroTitle}
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Main Brand Name</label>
+            <input
+              className="w-full bg-muted/10 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#a855f7] transition-all text-foreground"
+              value={formData.siteName}
+              onChange={(e) => setFormData({ ...formData, siteName: e.target.value })}
+              placeholder="SMART TECH"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Brand Tagline / Title</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#a855f7] transition-all text-foreground text-sm"
+              value={formData.siteTitle}
+              onChange={(e) => setFormData({ ...formData, siteTitle: e.target.value })}
+              placeholder="GUIDE"
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Layers className="w-5 h-5 text-[#00d4ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Hero Section</h3>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest"> Hero Title </label>
+            <input
+              className="w-full bg-muted/10 border border-white/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground"
+              value={formData.heroTitle}
               onChange={(e) => setFormData({ ...formData, heroTitle: e.target.value })}
               placeholder="Your Ultimate Tech Hub..."
             />
@@ -203,6 +253,120 @@ export default function SettingsPage() {
               value={formData.heroSubtitle}
               onChange={(e) => setFormData({ ...formData, heroSubtitle: e.target.value })}
               placeholder="Discover free games, software drop..."
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Camera className="w-5 h-5 text-[#00d4ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Hero HUD Configuration</h3>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Hero Status Bar Text</label>
+            <input
+              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+              value={formData.heroStatusText}
+              onChange={(e) => setFormData({ ...formData, heroStatusText: e.target.value })}
+              placeholder="# SYSTEM READY // SMART_TIPS_V2.0"
+            />
+          </div>
+          <div className="space-y-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+            <p className="text-xs font-bold text-[#00d4ff] uppercase tracking-widest mb-2 px-1">Primary Button (Left)</p>
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Button Text</label>
+              <input
+                className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                value={formData.heroButton1Text}
+                onChange={(e) => setFormData({ ...formData, heroButton1Text: e.target.value })}
+                placeholder="INITIALIZE"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Button Link</label>
+              <input
+                className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                value={formData.heroButton1Link}
+                onChange={(e) => setFormData({ ...formData, heroButton1Link: e.target.value })}
+                placeholder="#explore"
+              />
+            </div>
+          </div>
+          <div className="space-y-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+            <p className="text-xs font-bold text-[#ff00ff] uppercase tracking-widest mb-2 px-1">Secondary Button (Right)</p>
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Button Text</label>
+              <input
+                className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                value={formData.heroButton2Text}
+                onChange={(e) => setFormData({ ...formData, heroButton2Text: e.target.value })}
+                placeholder="CONNECT_NET"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Button Link</label>
+              <input
+                className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                value={formData.heroButton2Link}
+                onChange={(e) => setFormData({ ...formData, heroButton2Link: e.target.value })}
+                placeholder="/category/free-games"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-2 md:col-span-2">
+            <Layers className="w-5 h-5 text-[#ff00ff]" />
+            <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Cyber Splash Screen</h3>
+          </div>
+          <div className="space-y-4 md:col-span-2 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+            <p className="text-xs font-bold text-[#ff00ff] uppercase tracking-widest mb-2 px-1">Corner Labels</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Top Left</label>
+                <input
+                  className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                  value={formData.splashTopLeft}
+                  onChange={(e) => setFormData({ ...formData, splashTopLeft: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Top Right</label>
+                <input
+                  className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                  value={formData.splashTopRight}
+                  onChange={(e) => setFormData({ ...formData, splashTopRight: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Bottom Left</label>
+                <input
+                  className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                  value={formData.splashBottomLeft}
+                  onChange={(e) => setFormData({ ...formData, splashBottomLeft: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium text-muted-foreground px-1 uppercase tracking-widest">Bottom Right</label>
+                <input
+                  className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-3 px-5 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
+                  value={formData.splashBottomRight}
+                  onChange={(e) => setFormData({ ...formData, splashBottomRight: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Hacker Logs Sequence (JSON Array)</label>
+            <div className="p-4 rounded-xl bg-[#00d4ff0a] border border-[#00d4ff1a] flex gap-3 mb-2">
+              <Info className="w-4 h-4 text-[#00d4ff] shrink-0 translate-y-0.5" />
+              <p className="text-[10px] text-[#00d4ff] uppercase font-bold tracking-widest">Must be a valid JSON array of strings showing sequential boot messages.</p>
+            </div>
+            <textarea
+              className="w-full bg-[#1e293b]/20 border border-white/5 rounded-2xl py-4 px-6 font-mono text-xs outline-none focus:border-[#00d4ff] transition-all h-40 resize-none text-[#ff00ff]"
+              value={formData.splashLogs}
+              onChange={(e) => setFormData({ ...formData, splashLogs: e.target.value })}
             />
           </div>
         </div>
@@ -288,13 +452,83 @@ export default function SettingsPage() {
               onChange={(e) => setFormData({ ...formData, footerSubtitle: e.target.value })}
             />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-widest">Facebook Link</label>
-            <input
-              className="w-full bg-muted/10 border border-foreground/5 rounded-2xl py-4 px-6 outline-none focus:border-[#00d4ff] transition-all text-foreground text-sm"
-              value={formData.socialLinkFacebook}
-              onChange={(e) => setFormData({ ...formData, socialLinkFacebook: e.target.value })}
-            />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+          <div className="flex items-center justify-between gap-3 mb-2 md:col-span-2">
+            <div className="flex items-center gap-3">
+              <Share2 className="w-5 h-5 text-[#a855f7]" />
+              <h3 className="text-lg font-bold uppercase tracking-widest text-foreground">Social Profiles</h3>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                type="button" 
+                onClick={clearAllSocialLinks}
+                className="text-[10px] font-bold text-red-400 bg-red-400/10 px-4 py-2 rounded-lg hover:bg-red-400/20 transition-all uppercase tracking-widest"
+              >
+                Clear All
+              </button>
+              <button 
+                type="button" 
+                onClick={addSocialLink}
+                className="text-[10px] font-bold text-[#00d4ff] bg-[#00d4ff10] px-4 py-2 rounded-lg border border-[#00d4ff20] hover:bg-[#00d4ff20] transition-all flex items-center gap-2 uppercase tracking-widest"
+              >
+                <Plus className="w-3 h-3" /> Add Link
+              </button>
+            </div>
+          </div>
+          
+          <div className="md:col-span-2 space-y-4">
+            {socialLinks.map((link, index) => (
+              <div key={index} className="group relative glass-card p-6 rounded-3xl border border-white/5 hover:border-[#a855f7]/30 transition-all bg-white/[0.01]">
+                <div className="grid md:grid-cols-[200px_1fr] gap-6 items-end">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Platform</label>
+                    <div className="relative">
+                      <select 
+                        value={link.platform}
+                        onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
+                        className="w-full bg-white/[0.03] dark:bg-black/20 border border-white/10 rounded-2xl py-3 px-5 outline-none focus:border-[#a855f7] transition-all text-foreground text-sm appearance-none cursor-pointer pr-10"
+                      >
+                        <option value="Facebook" className="bg-[#1a1c23] text-white">Facebook</option>
+                        <option value="Twitter" className="bg-[#1a1c23] text-white">Twitter</option>
+                        <option value="Instagram" className="bg-[#1a1c23] text-white">Instagram</option>
+                        <option value="YouTube" className="bg-[#1a1c23] text-white">YouTube</option>
+                        <option value="LinkedIn" className="bg-[#1a1c23] text-white">LinkedIn</option>
+                        <option value="GitHub" className="bg-[#1a1c23] text-white">GitHub</option>
+                        <option value="Discord" className="bg-[#1a1c23] text-white">Discord</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none transition-transform group-hover:text-[#a855f7]" />
+                    </div>
+                  </div>
+                  <div className="space-y-2 relative">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">URL</label>
+                    <div className="flex gap-3">
+                      <input
+                        className="flex-1 bg-muted/10 border border-white/5 rounded-2xl py-3 px-5 outline-none focus:border-[#a855f7] transition-all text-foreground text-sm"
+                        value={link.url}
+                        onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                        placeholder="https://..."
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => removeSocialLink(index)}
+                        className="w-11 h-11 rounded-2xl bg-red-400/10 text-red-400 hover:bg-red-400 hover:text-white transition-all flex items-center justify-center shrink-0 border border-red-400/20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {socialLinks.length === 0 && (
+              <div className="py-12 text-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02]">
+                <Share2 className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No social profiles added yet.</p>
+              </div>
+            )}
           </div>
         </div>
 

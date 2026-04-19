@@ -1,6 +1,7 @@
-import { FileText, Users, Eye, TrendingUp, Plus, Edit, Trash2 } from "lucide-react";
+import { FileText, Users, Eye, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import RecentPostsList from "@/components/admin/RecentPostsList";
 
 export default async function AdminDashboard() {
   // Fetch stats and actual data
@@ -75,38 +76,7 @@ export default async function AdminDashboard() {
             <Link href="/admin/posts" className="text-[#00d4ff] text-sm font-semibold hover:underline">View All</Link>
           </div>
           
-          <div className="space-y-4">
-            {recentPosts.length > 0 ? (
-              recentPosts.map((post) => (
-                <Link 
-                  key={post.id} 
-                  href={`/admin/posts/${post.id}`}
-                  className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5 cursor-pointer"
-                >
-                  <div className="w-16 h-16 rounded-xl bg-white/10 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                    {post.coverImage ? (
-                      <img src={post.coverImage} className="w-full h-full object-cover" alt={stripHtml(post.title)} />
-                    ) : (
-                      <FileText className="w-6 h-6 text-[#64748b]" />
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <h3 className="font-bold text-base group-hover:text-[#00d4ff] transition-colors line-clamp-1">{stripHtml(post.title)}</h3>
-                    <p className="text-xs text-[#64748b]">{post.category?.name || "Uncategorized"} • {new Date(post.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex gap-2">
-                     <div className="p-2.5 rounded-xl bg-white/5 text-[#64748b] group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-all">
-                        <Edit className="w-4 h-4" />
-                     </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-[#64748b]">No posts found. Create your first one!</p>
-              </div>
-            )}
-          </div>
+          <RecentPostsList initialPosts={recentPosts} />
         </div>
 
         {/* Category Distribution */}

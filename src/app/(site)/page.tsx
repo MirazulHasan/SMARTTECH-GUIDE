@@ -10,14 +10,14 @@ export default async function Home() {
   const [categories, settings, recentPosts] = await Promise.all([
     prisma.category.findMany({
       include: { _count: { select: { posts: true } } },
-      take: 4
+      orderBy: { name: "asc" },
+      take: 10
     }),
     prisma.siteSettings.findUnique({ where: { id: "singleton" } }) as Promise<any>,
     prisma.post.findMany({
       where: { 
         published: true,
         featured: true,
-        category: { name: "Free Games" }
       },
       orderBy: { createdAt: "desc" },
       take: 6,
@@ -25,11 +25,25 @@ export default async function Home() {
     })
   ]);
 
-  const categoryIcons: Record<string, React.ReactNode> = {
-    "Tech News": <Newspaper />,
-    "Free Games": <Gamepad2 />,
-    "Free Software": <Download />,
-    "PC Tips": <Lightbulb />,
+  const getCategoryIcon = (name: string, iconName?: string) => {
+    // Priority to stored icon
+    if (iconName === "Gamepad2") return <Gamepad2 />;
+    if (iconName === "Newspaper") return <Newspaper />;
+    if (iconName === "Cpu") return <Cpu />;
+    if (iconName === "Download") return <Download />;
+    if (iconName === "Lightbulb") return <Lightbulb />;
+    if (iconName === "Monitor") return <Monitor />;
+    if (iconName === "Code") return <Code />;
+    if (iconName === "Zap") return <Zap />;
+    if (iconName === "Rocket") return <Rocket />;
+    
+    // Fallback to name-based
+    const n = name.toLowerCase();
+    if (n.includes('game')) return <Gamepad2 />;
+    if (n.includes('news')) return <Newspaper />;
+    if (n.includes('software') || n.includes('download')) return <Download />;
+    if (n.includes('tip') || n.includes('pc') || n.includes('tech')) return <Monitor />;
+    return <Lightbulb />;
   };
 
   return (
@@ -49,21 +63,25 @@ export default async function Home() {
           <div className="inline-flex items-center gap-3 px-6 py-2.5 bg-[#00f2ff11] border-l-4 border-[#00f2ff] skew-x-[-12deg]">
             <div className="w-2 h-2 bg-[#00f2ff] shadow-[0_0_10px_#00f2ff] animate-pulse" />
             <span className="text-[#00f2ff] text-xs md:text-sm font-black tracking-[0.4em] uppercase font-[var(--font-space)] skew-x-[12deg]">
-              SYSTEM READY // SMART_TIPS_V2.0
+              {settings?.heroStatusText || "SYSTEM READY // SMART_TIPS_V2.0"}
             </span>
           </div>
 
           {/* Action Button */}
           <div className="flex flex-col sm:flex-row gap-6 relative z-10">
-            <Link href="#explore" className="cyber-button px-12 py-5 font-black flex items-center gap-3 group skew-x-[-10deg]">
-              <span className="skew-x-[10deg] flex items-center gap-2 text-sm">
-                INITIALIZE <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+            <Link href={settings?.heroButton1Link || "#explore"} className="cyber-button px-12 py-5 font-black flex items-center gap-3 group skew-x-[-10deg]">
+              <span className="skew-x-[10deg] flex items-center gap-2 text-sm uppercase tracking-widest">
+                {settings?.heroButton1Text || "INITIALIZE"} <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
               </span>
             </Link>
 
-            <Link href="https://www.facebook.com/smarttechguide/" target="_blank" className="px-10 py-5 border border-[#ff00ff]/30 text-[#ff00ff] font-bold inline-flex items-center gap-2 hover:bg-[#ff00ff0a] transition-all skew-x-[-10deg]">
+            <Link 
+              href={settings?.heroButton2Link || "https://www.facebook.com/smarttechguide/"} 
+              target={settings?.heroButton2Link?.startsWith('http') ? "_blank" : "_self"} 
+              className="px-10 py-5 border border-[#ff00ff]/30 text-[#ff00ff] font-bold inline-flex items-center gap-2 hover:bg-[#ff00ff0a] transition-all skew-x-[-10deg]"
+            >
               <span className="skew-x-[10deg] flex items-center gap-2 text-sm uppercase italic">
-                Connect_Net <ExternalLink className="w-4 h-4" />
+                {settings?.heroButton2Text || "Connect_Net"} <ExternalLink className="w-4 h-4" />
               </span>
             </Link>
           </div>
@@ -85,12 +103,12 @@ export default async function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-12 gap-y-16 py-10">
+        <div className="flex flex-wrap justify-center gap-x-12 gap-y-16 py-10">
           {categories.map((item: any, idx: number) => (
             <Link
               key={idx}
               href={`/category/${item.slug}`}
-              className="cyber-box group relative w-full h-full min-h-[320px]"
+              className="cyber-box group relative w-full sm:w-[320px] h-full min-h-[320px]"
             >
               {/* Mechanical Corner Badge */}
               <div className="absolute -top-3 left-4 bg-[#00f2ff] text-black font-black px-3 py-1 text-[10px] tracking-[0.2em] shadow-[0_0_10px_#00f2ff] skew-x-[8deg] z-10 transition-transform group-hover:scale-110">
@@ -98,7 +116,7 @@ export default async function Home() {
               </div>
 
               <div className="w-16 h-16 bg-[#00f2ff0a] border border-[#00f2ff33] flex items-center justify-center mb-8 text-[#00f2ff] group-hover:bg-[#00f2ff] group-hover:text-black transition-all duration-500 group-hover:shadow-[0_0_30px_#00f2ff] skew-x-[8deg]">
-                {categoryIcons[item.name] || <Newspaper />}
+                {getCategoryIcon(item.name, item.icon)}
               </div>
 
               <h3 className="text-2xl font-black mb-3 group-hover:text-[#00f2ff] transition-colors italic uppercase tracking-wider skew-x-[8deg]">{item.name}</h3>
@@ -115,10 +133,10 @@ export default async function Home() {
       {/* Newsletter Section */}
       <section className="container mx-auto px-6 py-24 border-t border-white/5 flex flex-col items-center text-center">
         <div className="mb-16 text-center relative z-20">
-          <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
+          <h2 className="text-4xl md:text-5xl font-black gradient-text italic uppercase tracking-tighter">
             {settings?.stayUpdatedTitle || "Stay Updated"}
           </h2>
-          <div className="h-1.5 w-48 bg-[#0b84f3] mx-auto mt-4 shadow-[0_0_20px_#0b84f3] skew-x-[-20deg]" />
+          <div className="h-1.5 w-48 bg-[#a855f7] mx-auto mt-4 shadow-[0_0_20px_#a855f7] skew-x-[-20deg]" />
           <p className="text-[#64748b] text-lg max-w-lg mx-auto mt-6">
             {settings?.stayUpdatedSubtitle || "Get the latest PC tips and tech news straight to your inbox."}
           </p>
@@ -163,27 +181,39 @@ export default async function Home() {
               </div>
             </div>
 
-            {/* Navigation Links */}
-            <div className="flex flex-wrap justify-center gap-x-10 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] relative z-20 bg-background/80 backdrop-blur-sm px-6 py-2">
-              <Link href="/" className="hover:text-[#00f2ff] transition-all relative group">
-                Home
-                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
-              </Link>
-              <Link href="/news" className="hover:text-[#00f2ff] transition-all relative group">
-                Tech News
-                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
-              </Link>
-              <Link href="/free-games" className="hover:text-[#00f2ff] transition-all relative group">
-                Free Games
-                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
-              </Link>
-              <Link href="/tips" className="hover:text-[#00f2ff] transition-all relative group">
-                PC Tips
-                <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-[#00f2ff] transition-all group-hover:w-full" />
-              </Link>
-              <Link href={settings?.socialLinkFacebook || "https://facebook.com"} target="_blank" className="bg-[#00f2ff] text-black px-4 py-1 skew-x-[-15deg] hover:bg-white transition-all">
-                <span className="block skew-x-[15deg]">Facebook</span>
-              </Link>
+            {/* Navigation Links (Social HUD) */}
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 text-[10px] font-black uppercase tracking-[0.2em] relative z-20 px-6 py-2">
+              {(() => {
+                let socialLinks = [];
+                try {
+                  socialLinks = settings?.socialLinks ? JSON.parse(settings.socialLinks) : [];
+                } catch (e) {
+                  socialLinks = [];
+                }
+                
+                if (socialLinks.length === 0 && settings?.socialLinkFacebook) {
+                  socialLinks = [{ platform: "Facebook", url: settings.socialLinkFacebook }];
+                }
+
+                return socialLinks.map((link: any, idx: number) => (
+                  <Link 
+                    key={idx} 
+                    href={link.url || "#"} 
+                    target="_blank" 
+                    className="group relative h-9 px-6 bg-background/50 backdrop-blur-md border border-[#00f2ff22] hover:border-[#00f2ff] skew-x-[-15deg] transition-all flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Hover Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00f2ff11] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    
+                    <span className="block skew-x-[15deg] relative z-10 text-foreground/80 group-hover:text-[#00f2ff]">
+                      {link.platform}
+                    </span>
+                    
+                    {/* Bottom Indicator */}
+                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-[#00f2ff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                ));
+              })()}
             </div>
 
             {/* System Copyright */}

@@ -59,7 +59,23 @@ export default function RootLayout({
             <TechBackground />
             {children}
             <PostViewer />
-            <Toaster richColors position="bottom-right" />
+            <Toaster 
+              position="bottom-right" 
+              toastOptions={{
+                style: {
+                  background: 'rgba(6, 11, 25, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid #10b98144',
+                  color: '#10b981',
+                  fontFamily: 'var(--font-space), monospace',
+                  borderRadius: '18px',
+                  padding: '12px 24px',
+                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.1)',
+                  fontSize: '14px',
+                  letterSpacing: '0.05em',
+                },
+              }}
+            />
           </PostProvider>
         </ThemeProvider>
       </body>

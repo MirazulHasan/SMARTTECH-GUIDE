@@ -87,7 +87,7 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
 
   return (
     <section
-      className="relative w-full h-[700px] md:h-[900px] flex items-center justify-center overflow-hidden bg-background transition-colors duration-500"
+      className="relative w-full h-[500px] md:h-[600px] flex items-center justify-center overflow-hidden bg-background transition-colors duration-500"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -140,14 +140,14 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
         }}
       >
         <div className="mb-20 text-center relative z-20">
-          <h2 className="text-3xl md:text-6xl font-black text-foreground tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(0,242,255,0.2)] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+          <h2 className="text-3xl md:text-6xl font-black gradient-text tracking-[0.3em] uppercase italic drop-shadow-[0_0_20px_rgba(0,242,255,0.2)] dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             FREE GAMES
           </h2>
-          <div className="h-1.5 w-48 bg-[#0b84f3] mx-auto mt-4 shadow-[0_0_20px_#0b84f3] skew-x-[-20deg]" />
+          <div className="h-1.5 w-48 bg-[#a855f7] mx-auto mt-4 shadow-[0_0_20px_#a855f7] skew-x-[-20deg]" />
         </div>
 
         <div
-          className="relative w-full h-[500px] flex items-center justify-center"
+          className="relative w-full h-[300px] flex items-center justify-center"
           style={{
             perspective: "1200px",
             transformStyle: "preserve-3d",
@@ -158,7 +158,7 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
             const wrappedOffset = offset > total / 2 ? offset - total : offset < -total / 2 ? offset + total : offset;
 
             const isActive = wrappedOffset === 0;
-            const isVisible = Math.abs(wrappedOffset) <= 2;
+            const isVisible = Math.abs(wrappedOffset) <= 3;
 
             if (!isVisible) return null;
 
@@ -169,7 +169,7 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
             const scale = isActive ? 1 : 0.9;
             const opacity = isActive ? 1 : 0.4;
             const blurPx = isActive ? 0 : 4;
-            const zIndex = isActive ? 10 : 4 - Math.abs(wrappedOffset);
+            const zIndex = isActive ? 20 : 10 - Math.abs(wrappedOffset);
 
             return (
               <div
@@ -178,7 +178,7 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
                   if (isDragging.current) e.preventDefault();
                   else if (!isActive) goTo(idx);
                 }}
-                className={`absolute w-[320px] md:w-[980px] h-[150px] md:h-[430px] rounded-3xl overflow-hidden bg-card shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-foreground/5`}
+                className={`absolute w-[320px] md:w-[460px] h-[150px] md:h-[215px] rounded-3xl overflow-hidden bg-card shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-foreground/5`}
                 style={{
                   transform: `translateX(${translateX}%) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity,
@@ -220,7 +220,7 @@ export default function PostCarousel({ posts }: { posts: any[] }) {
                           }}
                           className="bg-[#0b84f3] text-white px-8 py-2 md:py-2.5 text-xs md:text-sm font-semibold hover:bg-[#096dd0] transition-colors"
                         >
-                          Play now
+                          Read more
                         </button>
                       </div>
                     )}

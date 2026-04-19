@@ -8,8 +8,8 @@ interface CyberTitleProps {
 }
 
 export default function CyberTitle({ siteName = "SMART", siteTitle = "GUIDE" }: CyberTitleProps) {
-  const line1 = siteName;
-  const line2 = "TECH ";
+  const line1 = siteName.split(' ')[0] || "SMART";
+  const line2 = siteName.split(' ')[1] ? (siteName.split(' ')[1] + " ") : "TECH ";
   const line3 = siteTitle;
 
   // Animation variants for drawing effect

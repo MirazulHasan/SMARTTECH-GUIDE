@@ -20,10 +20,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name } = body;
+    const { name, icon } = body;
     const slug = name.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, "");
     const category = await prisma.category.create({
-      data: { name, slug },
+      data: { name, slug, icon: icon || "Newspaper" },
     });
     return NextResponse.json(category);
   } catch (error) {

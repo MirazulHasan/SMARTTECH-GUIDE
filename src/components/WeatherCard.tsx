@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { Cloud, Droplets, Wind, Sun, MapPin, Search } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Cloud, Droplets, Wind, Sun, MapPin, Search, RefreshCw, Loader2, Thermometer, CloudRain, CloudLightning, Snowflake, CloudOff } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * Cyberpunk Weather Card
@@ -9,65 +10,138 @@ import { Cloud, Droplets, Wind, Sun, MapPin, Search } from "lucide-react";
  * Adapted for SmartTech Guide with high-fidelity aesthetics.
  */
 const WeatherCard = () => {
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [weather, setWeather] = useState<any>(null);
+  const [locationName, setLocationName] = useState("LOCATING...");
+
+  const fetchWeather = async () => {
+    try {
+      setRefreshing(true);
+      
+      // Get Geolocation
+      const position: any = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      // Reverse Geocode for City Name
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+      const geoData = await geoRes.json();
+      const city = geoData.address.city || geoData.address.town || geoData.address.suburb || "USERL_COORD";
+      const district = geoData.address.suburb || geoData.address.neighbourhood || "SEC_X";
+      setLocationName(`${city.toUpperCase()} // ${district.toUpperCase()}`);
+
+      // Get Weather Data (Open-Meteo)
+      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto`);
+      const weatherData = await weatherRes.json();
+      setWeather(weatherData.current);
+      
+      setLoading(false);
+      setRefreshing(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("HUD: Failed to sync weather data.");
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeather();
+  }, []);
+
+  const getWeatherIcon = (code: number) => {
+    if (code === 0) return <Sun className="weather-icon text-amber-400 animate-pulse" size={42} />;
+    if (code <= 3) return <Cloud className="weather-icon text-[#00d4ff] animate-pulse" size={42} />;
+    if (code <= 48) return <Wind className="weather-icon text-slate-400" size={42} />;
+    if (code <= 67) return <CloudRain className="weather-icon text-[#00d4ff]" size={42} />;
+    if (code <= 77) return <Snowflake className="weather-icon text-white" size={42} />;
+    if (code <= 99) return <CloudLightning className="weather-icon text-yellow-500" size={42} />;
+    return <CloudOff className="weather-icon text-[#64748b]" size={42} />;
+  };
+
   return (
     <div className="weather-card-wrapper pointer-events-none">
       <div className="card-instance pointer-events-auto group">
         {/* Main Front Card */}
         <div className="card-front glass-card">
-          <div className="weather-header">
+          <div className="weather-header flex justify-between items-center">
             <span className="live-badge">
-              <span className="pulse-dot"></span>
+              <span className={`pulse-dot ${refreshing ? 'animate-ping' : ''}`}></span>
               LIVE_SYSTEM
             </span>
+            <button 
+              onClick={fetchWeather}
+              disabled={refreshing}
+              className={`p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-primary transition-all ${refreshing ? 'animate-spin opacity-50' : 'hover:rotate-180'}`}
+              title="SYNC_ENVIRONMENT"
+            >
+              <RefreshCw size={12} />
+            </button>
           </div>
           
           <div className="weather-info mt-4">
-            <div className="temp-section flex items-start">
-              <span className="temperature">28°</span>
-              <Sun className="weather-icon text-accent animate-pulse ml-auto" size={42} />
-            </div>
-            
-            <div className="location-section flex items-center gap-2 mt-1">
-              <MapPin size={12} className="text-primary" />
-              <span className="location-text">DHAKA // SECTOR_07</span>
-            </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-2 h-full">
+                <Loader2 className="w-8 h-8 animate-spin text-primary opacity-50" />
+                <span className="text-[8px] font-black tracking-widest text-primary mt-2">SYNCING_ATMOSPHERE...</span>
+              </div>
+            ) : (
+              <>
+                <div className="temp-section flex items-start">
+                  <span className="temperature">{Math.round(weather?.temperature_2m || 0)}°</span>
+                  <div className="ml-auto">
+                    {getWeatherIcon(weather?.weather_code)}
+                  </div>
+                </div>
+                
+                <div className="location-section flex items-center gap-2 mt-1">
+                  <MapPin size={12} className="text-primary" />
+                  <span className="location-text">{locationName}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Hidden Details Card (Expands on Hover) */}
-        <div className="card-back glass-card-secondary">
-          <div className="metric-grid">
-            <div className="metric-box border-r border-[#00f2ff22]">
-              <span className="metric-label">HUMIDITY</span>
-              <div className="metric-value text-primary">
-                <Droplets size={14} />
-                65%
+        {!loading && (
+          <div className="card-back glass-card-secondary">
+            <div className="metric-grid">
+              <div className="metric-box border-r border-[#00f2ff22]">
+                <span className="metric-label">HUMIDITY</span>
+                <div className="metric-value text-[#00d4ff]">
+                  <Droplets size={14} />
+                  {weather?.relative_humidity_2m}%
+                </div>
+              </div>
+              <div className="metric-box">
+                <span className="metric-label">WIND_SPD</span>
+                <div className="metric-value text-purple-400">
+                  <Wind size={14} />
+                  {weather?.wind_speed_10m} <span className="text-[8px] font-light">KM/H</span>
+                </div>
               </div>
             </div>
-            <div className="metric-box">
-              <span className="metric-label">AIR QUALITY</span>
-              <div className="metric-value text-secondary">
-                <Wind size={14} />
-                GOOD
+            
+            <div className="detail-footer px-6 py-4 flex items-center justify-between">
+              <div className="aqi-stat">
+                <span className="metric-label">PRECIPIT.</span>
+                <div className="font-bold text-lg font-[var(--font-space)] text-foreground">{weather?.precipitation}mm</div>
+              </div>
+              <div className="realfeel-stat text-right">
+                <span className="metric-label">REAL FEEL</span>
+                <div className="font-bold text-lg font-[var(--font-space)] text-foreground">{Math.round(weather?.apparent_temperature || 0)}°C</div>
               </div>
             </div>
-          </div>
-          
-          <div className="detail-footer px-6 py-4 flex items-center justify-between">
-            <div className="aqi-stat">
-              <span className="metric-label">AQI INDEX</span>
-              <div className="font-bold text-lg font-[var(--font-space)] text-foreground">42</div>
-            </div>
-            <div className="realfeel-stat text-right">
-              <span className="metric-label">REAL FEEL</span>
-              <div className="font-bold text-lg font-[var(--font-space)] text-foreground">31°C</div>
-            </div>
-          </div>
 
-          <div className="status-banner">
-            <span>SUNRISE: 05:42 AM // CLEAR SKIES</span>
+            <div className="status-banner">
+              <span>ATMOSPHERE: {weather?.weather_code === 0 ? "CLEAR_SKIES" : "MONITORING..."} // {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <style jsx>{`

@@ -89,8 +89,17 @@ export default function TechBackground() {
         }}
       />
 
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 opacity-[0.05] bg-grid-primary" />
+      {/* 3D CyberGrid Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.2] dark:opacity-[0.05] transition-opacity duration-500"
+        style={{
+          backgroundSize: "40px 40px",
+          backgroundImage:
+            "linear-gradient(to right, var(--color-secondary, #00f2ff) 1px, transparent 1px), linear-gradient(to bottom, var(--color-secondary, #00f2ff) 1px, transparent 1px)",
+          transform:
+            "perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px)",
+        }}
+      />
 
       {/* Tech Grid Geometric Overlay (Shattered Glass feel) */}
       <svg className="absolute inset-0 w-full h-full opacity-[0.03]">

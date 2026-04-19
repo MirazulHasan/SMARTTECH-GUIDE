@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Image as ImageIcon, X, Loader2, ChevronDown, Check, ArrowLeft, AlertCircle } from "lucide-react";
+import { Save, Image as ImageIcon, X, Loader2, ChevronDown, Check, ArrowLeft, AlertCircle, Eye, Code, Trash2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 
 interface PostEditorProps {
@@ -12,6 +12,17 @@ interface PostEditorProps {
 
 export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
   const [formData, setFormData] = useState({
+    title: initialData?.title || "",
+    excerpt: initialData?.excerpt || "",
+    content: initialData?.content || "",
+    coverImage: initialData?.coverImage || "",
+    categoryId: initialData?.categoryId || "",
+    slug: initialData?.slug || "",
+    published: initialData?.published || false,
+    featured: initialData?.featured || false,
+  });
+
+  const [lastSavedData, setLastSavedData] = useState({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
     content: initialData?.content || "",
@@ -32,6 +43,9 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const [deleting, setDeleting] = useState(false);
   const editorRef = useRef<any>(null);
 
   const insertTag = (tag: string, endTag: string = "", targetId: string = 'post-editor-textarea') => {
@@ -175,17 +189,7 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
   };
 
   const hasChanges = () => {
-    const original = {
-      title: initialData?.title || "",
-      excerpt: initialData?.excerpt || "",
-      content: initialData?.content || "",
-      coverImage: initialData?.coverImage || "",
-      categoryId: initialData?.categoryId || "",
-      slug: initialData?.slug || "",
-      published: initialData?.published || false,
-      featured: initialData?.featured || false,
-    };
-    return JSON.stringify(formData) !== JSON.stringify(original);
+    return JSON.stringify(formData) !== JSON.stringify(lastSavedData);
   };
 
   const handleBackAction = () => {
@@ -193,6 +197,26 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
       setShowDiscardModal(true);
     } else {
       router.back();
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/posts/${initialData.id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/admin");
+        router.refresh();
+      } else {
+        setErrorMsg("Failed to delete article. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("An unexpected error occurred during deletion.");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -272,11 +296,15 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
       });
 
       if (res.ok) {
+        const savedPost = await res.json();
         setSuccess(true);
+        setLastSavedData({ ...formData });
         router.refresh(); 
         setTimeout(() => {
           setSuccess(false); 
-          router.push("/admin");
+          if (!isEdit) {
+            router.push(`/admin/posts/edit/${savedPost.slug}`);
+          }
         }, 2000);
       } else {
         const contentType = res.headers.get("content-type");
@@ -324,15 +352,45 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => setShowDiscardModal(false)}
-                className="py-4 rounded-2xl bg-white/5 border border-white/5 font-bold hover:bg-white/10 transition-all"
+                className="py-4 rounded-2xl bg-white/5 border border-white/5 font-bold hover:bg-white/10 transition-all text-sm"
               >
                 Keep Editing
               </button>
               <button 
                 onClick={() => router.push("/admin")}
-                className="py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-[0_10px_30px_rgba(239,68,68,0.3)]"
+                className="py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-[0_10px_30px_rgba(239,68,68,0.3)] text-sm"
               >
                 Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/80 backdrop-blur-xl px-4">
+          <div className="glass p-10 rounded-[2.5rem] max-w-md w-full animate-in zoom-in-95 duration-200 border border-red-500/20 shadow-[0_0_100px_rgba(239,68,68,0.2)]">
+            <div className="w-20 h-20 rounded-[2rem] bg-red-500 text-white flex items-center justify-center mb-8 mx-auto shadow-[0_10px_40px_rgba(239,68,68,0.4)]">
+              <Trash2 className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-bold font-[var(--font-space)] text-center mb-3">Delete Article?</h2>
+            <p className="text-[#64748b] text-center mb-10 text-lg leading-relaxed">
+              This will permanently remove <strong>"{initialData?.title}"</strong>. All content and engagement will be lost forever.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="py-4 rounded-2xl bg-white/5 border border-white/5 font-bold hover:bg-white/10 transition-all text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={deleting}
+                onClick={handleDelete}
+                className="py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-[0_10px_30px_rgba(239,68,68,0.3)] flex items-center justify-center gap-2 text-sm"
+              >
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Forever"}
               </button>
             </div>
           </div>
@@ -361,43 +419,16 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
             {/* Title Area with Toolbar */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
-                <label className="text-sm font-medium text-[#64748b] uppercase tracking-widest">Main Title (HTML Supported)</label>
+                <label className="text-sm font-medium text-[#64748b] uppercase tracking-widest">Main Title (Plain Text)</label>
               </div>
               <div className="bg-[#1e293b]/20 border border-white/5 rounded-3xl overflow-hidden flex flex-col focus-within:border-[#00d4ff] transition-all">
-                <div className="flex flex-wrap items-center gap-2 p-2 bg-white/5 border-b border-white/5">
-                  <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
-                    {[{ l: 'H1', t: '<h1>', e: '</h1>' }, { l: 'H2', t: '<h2>', e: '</h2>' }, { l: 'H3', t: '<h3>', e: '</h3>' }].map(b => (
-                      <button key={b.l} type="button" onClick={() => insertTag(b.t, b.e, 'post-title-input')}
-                        className="px-2 h-7 rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-[10px] font-bold">
-                        {b.l}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 border-r border-white/10">
-                    {[{ l: 'B', t: '<strong>', e: '</strong>' }, { l: 'I', t: '<em>', e: '</em>' }, { l: 'U', t: '<u>', e: '</u>' }, { l: 'Color', t: '<span style="color: #00d4ff;">', e: '</span>' }].map(b => (
-                      <button key={b.l} type="button" onClick={() => insertTag(b.t, b.e, 'post-title-input')}
-                        className="px-2 h-7 rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-[10px] font-bold">
-                        {b.l}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2">
-                    {[{ l: 'Left', t: '<div style="text-align: left;">', e: '</div>' }, { l: 'Center', t: '<div style="text-align: center;">', e: '</div>' }, { l: 'Right', t: '<div style="text-align: right;">', e: '</div>' }, { l: 'Justify', t: '<div style="text-align: justify;">', e: '</div>' }].map(b => (
-                      <button key={b.l} type="button" onClick={() => insertTag(b.t, b.e, 'post-title-input')}
-                        className="px-2 h-7 rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-[10px] font-bold">
-                        {b.l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 <textarea
                   id="post-title-input"
-                  className="w-full p-6 bg-transparent outline-none font-mono text-sm leading-relaxed text-[#00d4ff] placeholder:text-[#334155] min-h-[120px] resize-none whitespace-pre-wrap"
-                  placeholder="Main Title (HTML Supported)..."
+                  className="w-full p-6 bg-transparent outline-none font-sans text-sm font-bold tracking-tight text-[#00d4ff] placeholder:text-[#334155] min-h-[100px] resize-none"
+                  placeholder="Enter a compelling title..."
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  onKeyDown={(e) => handleKeyDown(e, 'post-title-input')}
                 />
               </div>
             </div>
@@ -405,32 +436,15 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
             {/* Short Excerpt (HTML SUPPORTED) */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
-                <label className="text-sm font-medium text-[#64748b] uppercase tracking-widest">Short Excerpt (HTML SUPPORTED)</label>
+                <label className="text-sm font-medium text-[#64748b] uppercase tracking-widest">Short Excerpt (Plain Text)</label>
               </div>
               <div className="bg-[#1e293b]/20 border border-white/5 rounded-3xl overflow-hidden flex flex-col focus-within:border-[#00d4ff] transition-all">
-                <div className="flex flex-wrap items-center gap-2 p-2 bg-white/5 border-b border-white/5">
-                  <div className="flex items-center gap-1.5 px-2">
-                    <button type="button" onClick={() => insertTag('<strong>', '</strong>', 'post-excerpt-input')}
-                      className="w-10 h-8 flex items-center justify-center rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-xs font-bold uppercase tracking-widest">
-                      B
-                    </button>
-                    <button type="button" onClick={() => insertTag('<em>', '</em>', 'post-excerpt-input')}
-                      className="w-10 h-8 flex items-center justify-center rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-xs font-bold uppercase tracking-widest">
-                      I
-                    </button>
-                    <button type="button" onClick={() => insertTag('<a href="', '" target="_blank">Link</a>', 'post-excerpt-input')}
-                      className="px-4 h-8 flex items-center justify-center rounded border border-[#00f2ff33] text-[#00f2ff] hover:bg-[#00f2ff11] transition-all text-xs font-bold uppercase tracking-[0.1em]">
-                      Link
-                    </button>
-                  </div>
-                </div>
                 <textarea
                   id="post-excerpt-input"
-                  className="w-full p-6 bg-transparent outline-none font-mono text-sm leading-relaxed text-[#00d4ff] placeholder:text-[#334155] min-h-[140px] resize-none whitespace-pre-wrap"
+                  className="w-full p-6 bg-transparent outline-none font-sans text-sm leading-relaxed text-[#00d4ff] placeholder:text-[#334155] min-h-[120px] resize-none"
                   placeholder="A short punchy summary that hooks the reader..."
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  onKeyDown={(e) => handleKeyDown(e, 'post-excerpt-input')}
                 />
               </div>
             </div>
@@ -438,9 +452,21 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
                 <label className="text-sm font-medium text-[#64748b] uppercase tracking-widest">Post Content (Professional HTML Editor)</label>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#00d4ff] animate-pulse" />
-                  <span className="text-[10px] font-bold text-[#00d4ff] uppercase tracking-tighter">Code Mode Active</span>
+                <div className="flex bg-white/5 p-1 rounded-xl items-center border border-white/5">
+                  <button 
+                    type="button"
+                    onClick={() => setMode('edit')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === 'edit' ? 'bg-[#00d4ff] text-black shadow-[0_0_10px_rgba(0,212,255,0.3)]' : 'text-[#64748b] hover:text-white'}`}
+                  >
+                    <Code className="w-4 h-4" /> Edit
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setMode('preview')}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === 'preview' ? 'bg-[#ff00ff] text-white shadow-[0_0_10px_rgba(255,0,255,0.3)]' : 'text-[#64748b] hover:text-white'}`}
+                  >
+                    <Eye className="w-4 h-4" /> Preview
+                  </button>
                 </div>
               </div>
 
@@ -553,39 +579,49 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
                 </div>
 
                 <div onKeyDown={(e) => handleKeyDown(e, 'post-editor-textarea')} className="h-[600px] w-full border-t border-white/5 relative">
-                  <Editor
-                    height="100%"
-                    language="html"
-                    theme="vs-dark"
-                    value={formData.content}
-                    onChange={(val) => setFormData({ ...formData, content: val || '' })}
-                    onMount={(editor, monaco) => {
-                      editorRef.current = editor;
+                  {mode === 'edit' ? (
+                    <Editor
+                      height="100%"
+                      language="html"
+                      theme="vs-dark"
+                      value={formData.content}
+                      onChange={(val) => setFormData({ ...formData, content: val || '' })}
+                      onMount={(editor, monaco) => {
+                        editorRef.current = editor;
 
-                      // Custom theme to match site background
-                      monaco.editor.defineTheme('site-theme', {
-                        base: 'vs-dark',
-                        inherit: true,
-                        rules: [],
-                        colors: {
-                          'editor.background': '#0a0f1e',
-                        }
-                      });
-                      monaco.editor.setTheme('site-theme');
-                    }}
-                    options={{
-                      minimap: { enabled: false },
-                      wordWrap: "on",
-                      padding: { top: 24 },
-                      fontSize: 14,
-                      fontFamily: 'monospace',
-                      formatOnType: true,
-                      formatOnPaste: true,
-                      guides: { indentation: true },
-                      renderLineHighlight: "all",
-                      scrollBeyondLastLine: false,
-                    }}
-                  />
+                        // Custom theme to match site background
+                        monaco.editor.defineTheme('site-theme', {
+                          base: 'vs-dark',
+                          inherit: true,
+                          rules: [],
+                          colors: {
+                            'editor.background': '#0a0f1e',
+                          }
+                        });
+                        monaco.editor.setTheme('site-theme');
+                      }}
+                      options={{
+                        minimap: { enabled: false },
+                        wordWrap: "on",
+                        padding: { top: 24 },
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                        formatOnType: true,
+                        formatOnPaste: true,
+                        guides: { indentation: true },
+                        renderLineHighlight: "all",
+                        scrollBeyondLastLine: false,
+                      }}
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-white rounded-b-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                      <iframe
+                        srcDoc={formData.content}
+                        className="w-full h-full border-none"
+                        title="Live Preview"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -733,6 +769,23 @@ export default function PostEditor({ initialData, isEdit }: PostEditorProps) {
                 {isEdit ? "Update Article" : "Publish Now"}
               </button>
             </div>
+
+            {isEdit && (
+              <div className="glass p-8 rounded-3xl border-red-500/20 bg-red-500/[0.02] space-y-4">
+                <div className="flex items-center gap-3 text-red-400 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Danger Zone</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="w-full py-4 rounded-2xl border border-red-500/30 text-red-500 font-bold text-sm hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 group"
+                >
+                  <Trash2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                  Delete Article
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </form>
