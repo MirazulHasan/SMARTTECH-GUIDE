@@ -27,21 +27,37 @@ const WeatherCard = () => {
       const { latitude, longitude } = position.coords;
 
       // Reverse Geocode for City Name
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-      const geoData = await geoRes.json();
-      const city = geoData.address.city || geoData.address.town || geoData.address.suburb || "USERL_COORD";
-      const district = geoData.address.suburb || geoData.address.neighbourhood || "SEC_X";
-      setLocationName(`${city.toUpperCase()} // ${district.toUpperCase()}`);
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'SmartTechGuide/1.0'
+          }
+        });
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          const city = geoData.address?.city || geoData.address?.town || geoData.address?.suburb || "USERL_COORD";
+          const district = geoData.address?.suburb || geoData.address?.neighbourhood || "SEC_X";
+          setLocationName(`${city.toUpperCase()} // ${district.toUpperCase()}`);
+        } else {
+          setLocationName("COORD_LOCKED // UNKNOWN_ZONE");
+        }
+      } catch (geoErr) {
+        console.warn("Geo-sync failed:", geoErr);
+        setLocationName("COORD_LOCKED // UNKNOWN_ZONE");
+      }
 
       // Get Weather Data (Open-Meteo)
       const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=auto`);
-      const weatherData = await weatherRes.json();
-      setWeather(weatherData.current);
+      if (weatherRes.ok) {
+        const weatherData = await weatherRes.json();
+        setWeather(weatherData.current);
+      }
       
       setLoading(false);
       setRefreshing(false);
     } catch (err) {
-      console.error(err);
+      console.error("HUD telemetry failure:", err);
       toast.error("HUD: Failed to sync weather data.");
       setLoading(false);
       setRefreshing(false);

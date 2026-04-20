@@ -20,7 +20,7 @@ export default async function Home() {
         featured: true,
       },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 10,
       include: { category: true }
     })
   ]);
