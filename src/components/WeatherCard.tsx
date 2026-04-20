@@ -27,24 +27,20 @@ const WeatherCard = () => {
       const { latitude, longitude } = position.coords;
 
       // Reverse Geocode for City Name
+      // Reverse Geocode for City Name (Using BigDataCloud for better reliability)
       try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'SmartTechGuide/1.0'
-          }
-        });
+        const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
         if (geoRes.ok) {
           const geoData = await geoRes.json();
-          const city = geoData.address?.city || geoData.address?.town || geoData.address?.suburb || "USERL_COORD";
-          const district = geoData.address?.suburb || geoData.address?.neighbourhood || "SEC_X";
+          const city = geoData.city || geoData.locality || "USER_COORD";
+          const district = geoData.principalSubdivision || geoData.countryCode || "SEC_ZONE";
           setLocationName(`${city.toUpperCase()} // ${district.toUpperCase()}`);
         } else {
-          setLocationName("COORD_LOCKED // UNKNOWN_ZONE");
+          setLocationName(`${latitude.toFixed(2)}N // ${longitude.toFixed(2)}E`);
         }
       } catch (geoErr) {
         console.warn("Geo-sync failed:", geoErr);
-        setLocationName("COORD_LOCKED // UNKNOWN_ZONE");
+        setLocationName(`${latitude.toFixed(2)}N // ${longitude.toFixed(2)}E`);
       }
 
       // Get Weather Data (Open-Meteo)
@@ -182,7 +178,7 @@ const WeatherCard = () => {
           width: 100%;
           height: 100%;
           border-radius: 24px;
-          padding: 1.5rem;
+          padding: 1.25rem 1.5rem;
           z-index: 20;
           overflow: hidden;
           background: var(--color-card-bg);
@@ -255,20 +251,24 @@ const WeatherCard = () => {
         }
 
         .temperature {
-          font-size: 3.5rem;
+          font-size: 3rem;
           font-weight: 900;
-          line-height: 1;
+          line-height: 0.9;
           font-family: var(--font-space);
           color: var(--foreground);
           text-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
         }
 
         .location-text {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           font-weight: 700;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.1em;
           color: var(--text-muted);
           font-family: var(--font-space);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 180px;
         }
 
         .metric-grid {
